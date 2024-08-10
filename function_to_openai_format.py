@@ -21,3 +21,17 @@ def validate_call_model(f: Callable[..., Any]) -> Type[BaseModel]:
 
 		model = create_model(to_pascal(f.__name__), __module__=str(f.__module__), **field_definitions)
 		return model
+
+def remove_titles(kv: dict, prev_key: str = "", ) -> dict: #_infer_skip_keys from langchain
+		new_kv = {}
+		for k, v in kv.items():
+			if k == "title":
+				if isinstance(v, dict) and prev_key == "properties" and "title" in v.keys():
+					new_kv[k] = remove_titles(v, k)
+				else:
+					continue
+			elif isinstance(v, dict):
+				new_kv[k] = remove_titles(v, k)
+			else:
+				new_kv[k] = v
+		return new_kv
