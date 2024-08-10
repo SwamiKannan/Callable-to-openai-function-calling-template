@@ -34,12 +34,13 @@ def find_tools(functions_path = 'src//functions.py'):
 	return methods
 
 def get_docstring(f:str) ->list: #Extracts the docstring of a given openai formatted function item
-	name = f['function']['name']
-	doctext = f['function']['description']
-	ind1 = doctext.find('->')+len('->')
-	start_ind = ind1+doctext[ind1:].find(' - ')+len(' - ')
+	name = f.__name__
+	doctext = f.__doc__
+	print('Doctext:\t',doctext)
+	# ind1 = doctext.find('->')+len('->')
+	# start_ind = ind1+doctext[ind1:].find(' - ')+len(' - ')
 	end_ind = doctext.find('Args')
-	final_docstring = doctext[start_ind:end_ind].strip().replace('\n','').strip()
+	final_docstring = doctext[:end_ind].strip().replace('\n','').strip()
 	return {name:final_docstring}
 
 def get_functions(functions_path = 'src_ollama//functions.py') -> list:
@@ -186,7 +187,7 @@ if __name__ == "__main__":
 				new_kv[k] = v
 		return new_kv
 	
-	def dereference_refs_helper(obj, full_schema, skip_keys, processed_refs):
+	def dereference_refs_helper(obj, full_schema, skip_keys, processed_refs=None):
 		'''
 		Will remove from the obj schema the entire key, value pair where the key==skip_key
 		'''
@@ -286,135 +287,157 @@ if __name__ == "__main__":
 		updated_json_schema1.pop('definitions', None) #remove the definitions key if it exists
 		title = updated_json_schema1.pop('title', "") #extract title key
 		default_description = updated_json_schema1.pop('description','') #extract function description
-		 
+		return updated_json_schema1, title, default_description 
 
 	x = get_functions() #Getting dict of attributes of all functions
 	print('All functions:\n',x)
 	print('\n')
-	pri = list(x[1].values())[0] # Get first function attribute
+	pri = list(x[-2].values())[0] # Get first function attribute
 #		for t in x: < - This is True
 #				print(callable(t))
 	print(convert_to_openai_function(pri))
 	print('\n\n\n\n\n\n')
 	print('Function:\t',pri)
+	args = inspect.getfullargspec(pri).args
 	print('Inspect function:\t', inspect.getfullargspec(pri).args)
-	validated_model = validate_call_model(pri)
-	print('Type of validated model:\t', type(validated_model))
-	print('Fields of validated model',validated_model.model_fields)
-	print('Keys of fields of validated models',validated_model.model_fields.keys())
-	print('\n')
-	 #returns {'query': ModelField(name='query', type=str, required=True), 'v__duplicate_kwargs': ModelField(name='v__duplicate_kwargs', type=Optional[List[str]], required=False, default=None), 'args': ModelField(name='args', type=Optional[List[Any]], required=False, default=None), 'kwargs': ModelField(name='kwargs', type=Optional[Mapping[Any, Any]], required=False, default=None)}
-	anno = inspect.get_annotations(pri)
-	print('Annotations:\t', anno) # returns{'query': <class 'str'>, 'return': <class 'dict'>}
-	print('Annotation type:\t', type(anno))
-	print('\n')
-
-	# ALL THIS IS FOR GETTING THE APPROPRIATE ARGUMENTS !! 
-	print('*****Getting all the arguments and arg descriptions***** from inspect()') #This should be done only if there are args right ? No, we need the function description. Unless we use our docstring function for that
-	docstring = inspect.getdoc(pri)
-	name = pri.__name__
-	print('Inspect.getdoc:\t',docstring) #gets the entire docstring of the function
-	blocks = docstring.split("\n\n")
-	print('Docstring Blocks:\t', blocks)
-	descriptors = []
-	args_block = None
-	past_descriptors = False
-	for block in blocks:
-		if block.strip().startswith("Args:"):
-			args_block = block
-			break
-		elif block.strip().startswith("Returns:") or block.startswith("Example:"):
-			past_descriptors = True
-		# Don't break in case Args come after
-		elif not past_descriptors:
-			descriptors.append(block)
-		else:
-			continue
-	print('Descriptors:\t',descriptors)
-	print('String descriptors:\t',' '.join(descriptors))
-	arg_descriptions = {}
-	print('args block:\t',args_block)
-	if args_block:
-		arg = None
-		for line in args_block.split("\n")[1:]:
-			if ":" in line:
-				arg, desc = line.split(":", maxsplit=1)
-				print('Description before stripping arg types',arg)
-				arg = arg.split('(')[0]
-				print('Description after stripping arg types',arg)
-				arg_descriptions[arg.strip()] = desc.strip()
-			elif arg:
-				print('No desc')
-				arg_descriptions[arg.strip()] += " " + line.strip()
-	print('Arg descriptions:\t',arg_descriptions)
-	print('\n')
-
-	
-	print('**** Extracting details of the validated model ****') #Basically model created from the pydantic version of the function directly
-	print('Validated model schema:\t', validated_model.model_json_schema())
-	schema = validated_model.model_json_schema()["properties"]
-	print('Properties of validated model:\t', schema)
-
-	print('**** getting the details from the signature() fn of inspect')
-	sig_params = signature(pri).parameters  # Basically from the inspect.signature part
-	print('Validated model keys:\t',sig_params)
-
-	print('****Creating a dict that has { key=sig_params.items.keys() i.e. inspect.signature and value = schema[key] where schema is what we get from the validated models schama properties entity}')
-	field_names={}
-	for k,v in sig_params.items():
-		print(f'Key:\t',k,'\tValue:\t',v)
-		print('V name:\t',v.name)
-		print({k:schema[k]})  # {k = 'query' value = schema['query'] i.e. {'title': 'Query', 'type': 'string'}}
+	if len(args)>0:
+		validated_model = validate_call_model(pri)
+		print('Type of validated model:\t', type(validated_model))
+		print('Fields of validated model',validated_model.model_fields)
+		print('Keys of fields of validated models',validated_model.model_fields.keys())
 		print('\n')
-		field_names.update({k:schema[k]})
-	print('Field names', field_names)
-	print('\n')
-	print('*** Updating the pydantic model Field object with the detauls from the field names')
-	print('Fields of validated model:\t', validated_model.model_fields)
-	fields = {}
-	for fieldname in field_names:
-		print('Field name:\t', fieldname) #'query'
-		model_field = validated_model.model_fields[fieldname]
-		print('All model fields:\t', validated_model.model_fields)
-		print('Model field:\t',model_field)
-		print('Type of model field:\t',type(model_field))
-		print('is field required:\t', model_field.is_required)
-		print('Outer type????:\t', model_field.annotation)
-		print('Detailed annotations',model_field.__annotations__)
-		if model_field.is_required and not 'None' in str(model_field.annotation): #get the field type only if it is mandatory else set it as Optional[dtype]
-			t = model_field.annotation
-		else:
-			t = Optional[model_field.annotation]
-		print('t:\t',t)
-		print('Arg descriptions:\t',arg_descriptions)
-		print('field name:\t',fieldname) #{'query': (<class 'str'>, FieldInfo(default=Ellipsis, description='The search query.', extra={}))}
-		if arg_descriptions and fieldname in arg_descriptions:
-			print('Field. field_info',model_field.from_field(fieldname))
-			print('Field. field_info description',model_field.description)
-			model_field.description=arg_descriptions[fieldname]
-			print('Field. field_info post updation',model_field.description)
-		else:
-			print('Not present')
-		fields[fieldname] = (t, model_field)
-	print('Final fields:\t', fields) # {'query': (<class 'str'>, FieldInfo(default=Ellipsis, description='The search query.', extra={}))}
-	print('Type of final fields:\t', type(fields['query'][1]))
-	try:
-		final_model = create_model(name, **fields)
-	except Exception as e:
-		print('Final model could not be created:Exception\t',e)
-	print('Initial final model type:\t', type(final_model))
-	print('Initial final model doc:\t', dict[final_model])
-	print('Descriptors to go into the model:\t', descriptors)
-	final_model.__doc__ = ' '.join(descriptors).strip()	
-	print('Func desc as per validated model\t:', final_model.__doc__)
-	print('Does the final model have the attribute model_json_schema:\t',hasattr(final_model, "model_json_schema"))
+		#returns {'query': ModelField(name='query', type=str, required=True), 'v__duplicate_kwargs': ModelField(name='v__duplicate_kwargs', type=Optional[List[str]], required=False, default=None), 'args': ModelField(name='args', type=Optional[List[Any]], required=False, default=None), 'kwargs': ModelField(name='kwargs', type=Optional[Mapping[Any, Any]], required=False, default=None)}
+		anno = inspect.get_annotations(pri)
+		print('Annotations:\t', anno) # returns{'query': <class 'str'>, 'return': <class 'dict'>}
+		print('Annotation type:\t', type(anno))
+		print('\n')
 
-	 #Converting to openai schema
-	schema = final_model.model_json_schema(mode = 'serialization')
-	print('Final schema:\t', schema)
-	print('***** Removing any $refs from the json schema (Refer function defintion for details)')
-	keys = remove_refs(schema)
-	print('Keys in schema to be ignored:\t ')
-	titles_params = _rm_titles(schema)
-	print('Remove titles?:\t',titles_params)
-	
+		# ALL THIS IS FOR GETTING THE APPROPRIATE ARGUMENTS !! 
+		print('*****Getting all the arguments and arg descriptions***** from inspect()') #This should be done only if there are args right ? No, we need the function description. Unless we use our docstring function for that
+		docstring = inspect.getdoc(pri)
+		name = pri.__name__
+		print('Inspect.getdoc:\t',docstring) #gets the entire docstring of the function
+		blocks = docstring.split("\n\n")
+		print('Docstring Blocks:\t', blocks)
+		descriptors = []
+		args_block = None
+		past_descriptors = False
+		for block in blocks:
+			if block.strip().startswith("Args:"):
+				args_block = block
+				break
+			elif block.strip().startswith("Returns:") or block.startswith("Example:"):
+				past_descriptors = True
+			# Don't break in case Args come after
+			elif not past_descriptors:
+				descriptors.append(block)
+			else:
+				continue
+		print('Descriptors:\t',descriptors)
+		print('String descriptors:\t',' '.join(descriptors))
+		arg_descriptions = {}
+		print('args block:\t',args_block)
+		if args_block:
+			arg = None
+			for line in args_block.split("\n")[1:]:
+				if ":" in line:
+					arg, desc = line.split(":", maxsplit=1)
+					print('Description before stripping arg types',arg)
+					arg = arg.split('(')[0]
+					print('Description after stripping arg types',arg)
+					arg_descriptions[arg.strip()] = desc.strip()
+				elif arg:
+					print('No desc')
+					arg_descriptions[arg.strip()] += " " + line.strip()
+		print('Arg descriptions:\t',arg_descriptions)
+		print('\n')
+
+		
+		print('**** Extracting details of the validated model ****') #Basically model created from the pydantic version of the function directly
+		print('Validated model schema:\t', validated_model.model_json_schema())
+		schema = validated_model.model_json_schema()["properties"]
+		print('Properties of validated model:\t', schema)
+
+		print('**** getting the details from the signature() fn of inspect')
+		sig_params = signature(pri).parameters  # Basically from the inspect.signature part
+		print('Validated model keys:\t',sig_params)
+
+		print('****Creating a dict that has { key=sig_params.items.keys() i.e. inspect.signature and value = schema[key] where schema is what we get from the validated models schama properties entity}')
+		field_names={}
+		for k,v in sig_params.items():
+			print(f'Key:\t',k,'\tValue:\t',v)
+			print('V name:\t',v.name)
+			print({k:schema[k]})  # {k = 'query' value = schema['query'] i.e. {'title': 'Query', 'type': 'string'}}
+			print('\n')
+			field_names.update({k:schema[k]})
+		print('Field names', field_names)
+		print('\n')
+		print('*** Updating the pydantic model Field object with the detauls from the field names')
+		print('Fields of validated model:\t', validated_model.model_fields)
+		fields = {}
+		for fieldname in field_names:
+			print('Field name:\t', fieldname) #'query'
+			model_field = validated_model.model_fields[fieldname]
+			print('All model fields:\t', validated_model.model_fields)
+			print('Model field:\t',model_field)
+			print('Type of model field:\t',type(model_field))
+			print('is field required:\t', model_field.is_required)
+			print('Outer type????:\t', model_field.annotation)
+			print('Detailed annotations',model_field.__annotations__)
+			if model_field.is_required and not 'None' in str(model_field.annotation): #get the field type only if it is mandatory else set it as Optional[dtype]
+				t = model_field.annotation
+			else:
+				t = Optional[model_field.annotation]
+			print('t:\t',t)
+			print('Arg descriptions:\t',arg_descriptions)
+			print('field name:\t',fieldname) #{'query': (<class 'str'>, FieldInfo(default=Ellipsis, description='The search query.', extra={}))}
+			if arg_descriptions and fieldname in arg_descriptions:
+				print('Field. field_info',model_field.from_field(fieldname))
+				print('Field. field_info description',model_field.description)
+				model_field.description=arg_descriptions[fieldname]
+				print('Field. field_info post updation',model_field.description)
+			else:
+				print('Not present')
+			fields[fieldname] = (t, model_field)
+		print('Final fields:\t', fields) # {'query': (<class 'str'>, FieldInfo(default=Ellipsis, description='The search query.', extra={}))}
+		for field_name_key in fields:
+			print('Type of final fields:\t', type(fields[field_name_key][1]))
+		try:
+			final_model = create_model(name, **fields)
+		except Exception as e:
+			print('Final model could not be created:Exception\t',e)
+		print('Initial final model type:\t', type(final_model))
+		print('Initial final model doc:\t', dict[final_model])
+		print('Descriptors to go into the model:\t', descriptors)
+		final_model.__doc__ = ' '.join(descriptors).strip()	
+		print('Func desc as per validated model\t:', final_model.__doc__)
+		print('Does the final model have the attribute model_json_schema:\t',hasattr(final_model, "model_json_schema"))
+
+		#Converting to openai schema
+		schema = final_model.model_json_schema(mode = 'serialization')
+		print('Final schema:\t', schema)
+		print('***** Removing any $refs from the json schema (Refer function defintion for details)')
+		updated_schema, title, description = remove_extraneous_keys(schema)
+		removed_title = remove_titles(schema)
+		print('Titles removed schema:\t', removed_title)
+		removed_title.pop('description',None)
+		print('Titles and description removed schema:\t', removed_title)
+		final_dict = {"name": name or title,
+				"description": final_model.__doc__ or description,
+				"parameters":removed_title if schema else updated_schema}
+		# titles_params = rm_titles(schema)
+		# print('Remove titles?:\t',titles_params)
+		print('Final final dict:\t', final_dict)
+	else:
+		print('Zero arguments dict')
+		print('Docstring for pri:\t',get_docstring(pri))
+		final_dict = {
+			"name":pri.__name__,
+			"description":list(get_docstring(pri).values())[0],
+			"parameters":
+			{
+				"type":"object",
+				"properties":{}
+			}
+		}
+		print('Final final dict:\t', final_dict)
