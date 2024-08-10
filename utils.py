@@ -13,7 +13,7 @@ import datetime
 import shutil
 import warnings
 
-
+# see if we can get fields and schema directly from validate_fields() in pydantic v2
 
 def fxn():
 	warnings.warn("deprecated", LangChainDeprecationWarning)
@@ -42,18 +42,18 @@ def get_docstring(f:str) ->list: #Extracts the docstring of a given openai forma
 	final_docstring = doctext[start_ind:end_ind].strip().replace('\n','').strip()
 	return {name:final_docstring}
 
-def get_functions(functions_path = 'src//functions.py') -> list:
-	return	[getattr(functions,f) for f in find_tools(functions_path)]
+def get_functions(functions_path = 'src_ollama//functions.py') -> list:
+	return	[{f:getattr(functions,f)} for f in find_tools(functions_path)]
 	
 def get_openai_tools(functions_path = 'src//functions.py', func_tools = None) -> List[dict]:
-	tools=[convert_to_openai_function(t) for t in func_tools] if func_tools else [convert_to_openai_function(t) for t in get_functions(functions_path)]
+	tools=[convert_to_openai_function(t) for t in func_tools] if func_tools else [convert_to_openai_function(list(t.values())[0]) for t in get_functions(functions_path)]
 	return tools
 
 def get_system_prompt(tools,examples=False, use_template = False, template:dict = None,functions_path = 'src//functions.py', prompt_template:str = 'function'):
 	if use_template and not template:
 		raise Exception('if use_template is True, then a template should be provided. But no template provided')
 	if prompt_template == 'function':
-		from src_class.system_prompt_split import objective_prompt, example_prompt, prompt_instructions, prompt_schema, primary_prompt
+		from src_ollama.system_prompt_split import objective_prompt, example_prompt, prompt_instructions, prompt_schema, primary_prompt
 		output_schema = FunctionSignature.model_json_schema()
 	elif prompt_template == 'agent':
 		from system_prompt_agent import objective_prompt, example_prompt, prompt_instructions,prompt_schema, primary_prompt
@@ -124,34 +124,152 @@ def read_list_files(source_file):
 			history.append(json.loads(line))
 	return history
 
+def is_server_alive(host, port):
+	import socket
+	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	try:
+		response = sock.connect_ex((host,port))
+	except:
+		return False
 
+	#and then check the response...
+	if response == 0:
+		return True
+	else:
+		return False
 # all_functions = get_openai_tools()
 # all_docstrings = [get_docstring(fn) for fn in all_functions]
+
+
+
+
+
+
+
 
 if __name__ == "__main__":
 	from inspect import Parameter, signature
 	from copy import deepcopy
 	import textwrap
-	from pydantic.v1 import validate_arguments
+	#from pydantic.v1 import validate_arguments
 	import inspect
-	from typing import Optional
-	from pydantic import create_model
+	from typing import Optional, Callable, Any, Type
+	from pydantic import create_model, BaseModel, Field
+	from pydantic.alias_generators import to_pascal
 
-	x = get_functions()
-	pri = x[1]
+	def validate_call_model(f: Callable[..., Any]) -> Type[BaseModel]:
+		signature = inspect.signature(f)
+		parameters = signature.parameters
+		field_definitions: dict[str, Any] = {}
+		for name, param in parameters.items():
+			annotation, default = param.annotation, param.default
+			if annotation is param.empty:
+				annotation = Any
+			if default is param.empty:
+				default = Field(...)
+			field_definitions[name] = (annotation, default)
+
+		model = create_model(to_pascal(f.__name__), __module__=str(f.__module__), **field_definitions)
+		return model
+
+	def _rm_titles(kv: dict, prev_key: str = "", ) -> dict:
+		new_kv = {}
+		for k, v in kv.items():
+			if k == "title":
+				if isinstance(v, dict) and prev_key == "properties" and "title" in v.keys():
+					new_kv[k] = _rm_titles(v, k)
+				else:
+					continue
+			elif isinstance(v, dict):
+				new_kv[k] = _rm_titles(v, k)
+			else:
+				new_kv[k] = v
+		return new_kv
+	
+
+
+	def retrieve_ref(path, dict): #_retrieve_ref in langchain
+		components = path.split("/")
+		if components[0] != "#":
+			raise ValueError(
+			"ref paths are expected to be URI fragments, meaning they should start "
+			"with #."
+		)
+		out = schema
+		for component in components[1:]:
+			if component in out:
+				out = out[component]
+			elif component.isdigit() and int(component) in out:
+				out = out[int(component)]
+			else:
+				raise KeyError(f"Reference '{path}' not found.")
+		return deepcopy(out)
+		
+	def get_openai_type(class_string:str):
+		ref_dict = {"<class 'str'>":'string',"<class 'int'>":'int'}
+		if str(class_string) in ref_dict:
+			return ref_dict[str(class_string)]
+		else:
+			raise Exception('this dtype does not exist in ref_dict')
+			
+
+	def remove_refs(json_schema):
+		if processed_refs is None:
+			processed_refs = set()
+		keys = []
+		if isinstance(json_schema, dict):
+			for k, v in json_schema.items():
+				if k == "$ref":
+					if v in processed_refs:
+						continue
+					processed_refs.add(v)
+					ref = retrieve_ref(v, json_schema)
+					full_ref = remove_refs(
+                    ref, json_schema, processed_refs
+                	)
+					processed_refs.remove(v)
+					return full_ref
+					# keys.append(v.split("/")[1])
+					# keys += remove_refs(ref, json_schema, processed_refs)
+				elif isinstance(v, (list, dict)):
+					json_schema[k] = remove_refs(v, json_schema, processed_refs)
+				else:
+					json_schema[k] = v
+			return json_schema
+		elif isinstance(json_schema, list):
+			for el in json_schema:
+				keys += remove_refs(el, json_schema, processed_refs)
+		return keys
+
+
+	x = get_functions() #Getting dict of attributes of all functions
+	print('All functions:\n',x)
+	print('\n')
+	pri = list(x[1].values())[0] # Get first function attribute
 #		for t in x: < - This is True
 #				print(callable(t))
-	validated_model = validate_arguments(pri).model
-	print(validated_model.__fields__)
+	print(convert_to_openai_function(pri))
+	print('\n\n\n\n\n\n')
+	print('Function:\t',pri)
+	print('Inspect function:\t', inspect.getfullargspec(pri).args)
+	validated_model = validate_call_model(pri)
+	print('Type of validated model:\t', type(validated_model))
+	print('Fields of validated model',validated_model.model_fields)
+	print('Keys of fields of validated models',validated_model.model_fields.keys())
+	print('\n')
 	 #returns {'query': ModelField(name='query', type=str, required=True), 'v__duplicate_kwargs': ModelField(name='v__duplicate_kwargs', type=Optional[List[str]], required=False, default=None), 'args': ModelField(name='args', type=Optional[List[Any]], required=False, default=None), 'kwargs': ModelField(name='kwargs', type=Optional[Mapping[Any, Any]], required=False, default=None)}
 	anno = inspect.get_annotations(pri)
 	print('Annotations:\t', anno) # returns{'query': <class 'str'>, 'return': <class 'dict'>}
 	print('Annotation type:\t', type(anno))
+	print('\n')
+
+	# ALL THIS IS FOR GETTING THE APPROPRIATE ARGUMENTS !! 
+	print('*****Getting all the arguments and arg descriptions***** from inspect()') #This should be done only if there are args right ? No, we need the function description. Unless we use our docstring function for that
 	docstring = inspect.getdoc(pri)
 	name = pri.__name__
 	print('Inspect.getdoc:\t',docstring) #gets the entire docstring of the function
 	blocks = docstring.split("\n\n")
-	print('Blocks:\t', blocks)
+	print('Docstring Blocks:\t', blocks)
 	descriptors = []
 	args_block = None
 	past_descriptors = False
@@ -183,106 +301,72 @@ if __name__ == "__main__":
 				print('No desc')
 				arg_descriptions[arg.strip()] += " " + line.strip()
 	print('Arg descriptions:\t',arg_descriptions)
-	sig_params = signature(pri).parameters
-	print('Validated model schema:\t', validated_model.schema())
-	schema = validated_model.schema()["properties"]
+	print('\n')
+
+	
+	print('**** Extracting details of the validated model ****') #Basically model created from the pydantic version of the function directly
+	print('Validated model schema:\t', validated_model.model_json_schema())
+	schema = validated_model.model_json_schema()["properties"]
 	print('Properties of validated model:\t', schema)
-	print('Valid keys:\t',sig_params)
+
+	print('**** getting the details from the signature() fn of inspect')
+	sig_params = signature(pri).parameters  # Basically from the inspect.signature part
+	print('Validated model keys:\t',sig_params)
+
+	print('****Creating a dict that has { key=sig_params.items.keys() i.e. inspect.signature and value = schema[key] where schema is what we get from the validated models schama properties entity}')
 	field_names={}
 	for k,v in sig_params.items():
 		print(f'Key:\t',k,'\tValue:\t',v)
 		print('V name:\t',v.name)
-		print({k:schema[k]})
+		print({k:schema[k]})  # {k = 'query' value = schema['query'] i.e. {'title': 'Query', 'type': 'string'}}
 		print('\n')
 		field_names.update({k:schema[k]})
 	print('Field names', field_names)
-	print('Fields of validated model:\t', validated_model.__fields__)
+	print('\n')
+	print('*** Updating the pydantic model Field object with the detauls from the field names')
+	print('Fields of validated model:\t', validated_model.model_fields)
 	fields = {}
-	for field in field_names:
-		print('Field name:\t', field)
-		model_field = validated_model.__fields__[field]
+	for fieldname in field_names:
+		print('Field name:\t', fieldname) #'query'
+		model_field = validated_model.model_fields[fieldname]
+		print('All model fields:\t', validated_model.model_fields)
+		print('Model field:\t',model_field)
 		print('Type of model field:\t',type(model_field))
-		print('is field required:\t', model_field.required)
-		print('Does the field allow none:\t', model_field.allow_none)
-		print('Outer type????:\t', model_field.outer_type_)
-		if not model_field.allow_none and model_field.required:
-			t = model_field.outer_type_
+		print('is field required:\t', model_field.is_required)
+		print('Outer type????:\t', model_field.annotation)
+		print('Detailed annotations',model_field.__annotations__)
+		if model_field.is_required and not 'None' in str(model_field.annotation): #get the field type only if it is mandatory else set it as Optional[dtype]
+			t = model_field.annotation
 		else:
-			t = Optional[field.outer_type_]
+			t = Optional[model_field.annotation]
+		print('t:\t',t)
 		print('Arg descriptions:\t',arg_descriptions)
-		print('field name:\t',field)
-		if arg_descriptions and field in arg_descriptions:
-			print('Field. field_info',model_field.field_info)
-			print('Field. field_info description',model_field.field_info.description)
-			model_field.field_info.description=arg_descriptions[field]
-			print('Field. field_info post updation',model_field.field_info)
+		print('field name:\t',fieldname) #{'query': (<class 'str'>, FieldInfo(default=Ellipsis, description='The search query.', extra={}))}
+		if arg_descriptions and fieldname in arg_descriptions:
+			print('Field. field_info',model_field.from_field(fieldname))
+			print('Field. field_info description',model_field.description)
+			model_field.description=arg_descriptions[fieldname]
+			print('Field. field_info post updation',model_field.description)
 		else:
 			print('Not present')
-		fields[field] = (t, model_field.field_info)
-	print('Final fields:\t', fields)
-	final_model = create_model(name, **fields)
-	final_model.__doc__ = textwrap.dedent(' '.join(descriptors))
-	print('Func desc as per validated model', validated_model.__doc__)
-	print(final_model.__doc__)
-	print(hasattr(final_model, "model_json_schema"))
+		fields[fieldname] = (t, model_field)
+	print('Final fields:\t', fields) # {'query': (<class 'str'>, FieldInfo(default=Ellipsis, description='The search query.', extra={}))}
+	print('Type of final fields:\t', type(fields['query'][1]))
+	try:
+		final_model = create_model(name, **fields)
+	except Exception as e:
+		print('Final model could not be created:Exception\t',e)
+	print('Initial final model type:\t', type(final_model))
+	print('Initial final model doc:\t', dict[final_model])
+	print('Descriptors to go into the model:\t', descriptors)
+	final_model.__doc__ = ' '.join(descriptors).strip()	
+	print('Func desc as per validated model\t:', final_model.__doc__)
+	print('Does the final model have the attribute model_json_schema:\t',hasattr(final_model, "model_json_schema"))
 
 	 #Converting to openai schema
-	schema = final_model.model_json_schema()
+	schema = final_model.model_json_schema(mode = 'serialization')
 	print('Final schema:\t', schema)
 
-
-	def _rm_titles(kv: dict, prev_key: str = "") -> dict:
-		new_kv = {}
-		for k, v in kv.items():
-			if k == "title":
-				if isinstance(v, dict) and prev_key == "properties" and "title" in v.keys():
-					new_kv[k] = _rm_titles(v, k)
-				else:
-					continue
-			elif isinstance(v, dict):
-				new_kv[k] = _rm_titles(v, k)
-			else:
-				new_kv[k] = v
-		return new_kv
 	titles_params = _rm_titles(schema)
 	print('Remove titles?:\t',titles_params)
-
-
-	def retrieve_ref(path, dict):
-		components = path.split("/")
-		if components[0] != "#":
-			raise ValueError(
-			"ref paths are expected to be URI fragments, meaning they should start "
-			"with #."
-		)
-		out = schema
-		for component in components[1:]:
-			if component in out:
-				out = out[component]
-			elif component.isdigit() and int(component) in out:
-				out = out[int(component)]
-			else:
-				raise KeyError(f"Reference '{path}' not found.")
-		return deepcopy(out)
-		
-
-
-	def remove_refs(json_schema):
-		if processed_refs is None:
-			processed_refs = set()
-		keys = []
-		if isinstance(json_schema, dict):
-			for k, v in json_schema.items():
-				if k == "$ref":
-					if v in processed_refs:
-						continue
-					processed_refs.add(v)
-					ref = retrieve_ref(v, json_schema)
-					keys.append(v.split("/")[1])
-					keys += remove_refs(ref, json_schema, processed_refs)
-				elif isinstance(v, (list, dict)):
-					keys += remove_refs(v, json_schema, processed_refs)
-		elif isinstance(json_schema, list):
-			for el in json_schema:
-				keys += remove_refs(el, json_schema, processed_refs)
-		return keys
+	
