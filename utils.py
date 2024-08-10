@@ -172,7 +172,7 @@ if __name__ == "__main__":
 		model = create_model(to_pascal(f.__name__), __module__=str(f.__module__), **field_definitions)
 		return model
 
-	def _rm_titles(kv: dict, prev_key: str = "", ) -> dict:
+	def _rm_titles(kv: dict, prev_key: str = "", ) -> dict: #_infer_skip_keys
 		new_kv = {}
 		for k, v in kv.items():
 			if k == "title":
@@ -188,12 +188,11 @@ if __name__ == "__main__":
 	
 
 
-	def retrieve_ref(path, dict): #_retrieve_ref in langchain
+	def retrieve_ref(path, schema): #_retrieve_ref in langchain
 		components = path.split("/")
 		if components[0] != "#":
 			raise ValueError(
-			"ref paths are expected to be URI fragments, meaning they should start "
-			"with #."
+			"ref paths are expected to be URI fragments, meaning they should start with #."
 		)
 		out = schema
 		for component in components[1:]:
