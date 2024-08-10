@@ -204,16 +204,9 @@ if __name__ == "__main__":
 			else:
 				raise KeyError(f"Reference '{path}' not found.")
 		return deepcopy(out)
-		
-	def get_openai_type(class_string:str):
-		ref_dict = {"<class 'str'>":'string',"<class 'int'>":'int'}
-		if str(class_string) in ref_dict:
-			return ref_dict[str(class_string)]
-		else:
-			raise Exception('this dtype does not exist in ref_dict')
 			
 
-	def remove_refs(json_schema):
+	def remove_refs(json_schema): #_dereference_refs_helper
 		if processed_refs is None:
 			processed_refs = set()
 		keys = []
