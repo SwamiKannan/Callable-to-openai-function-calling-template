@@ -92,3 +92,37 @@ def retrieve_ref(path, schema): #_retrieve_ref in langchain
 			else:
 				raise KeyError(f"Reference '{path}' not found.")
 		return deepcopy(out)
+        
+def remove_refs(json_schema, full_schema = None, processed_refs=None): #_infer_skip_keys - For this example, it will return ['$defs']
+		'''
+		refs format is used when one class's object is used as another's variable. A typical json format using this would be:
+		{
+			'$defs': {'Bar': {'properties': {}, 'title': 'Bar', 'type': 'object'}},
+			'properties': {'x': {'$ref': '#/$defs/Bar'}},
+			'required': ['x'],
+			'title': 'Foo',
+			'type': 'object',
+		}
+		where a Bar object is an instancevariable of class Foo
+		'''
+		full_schema = full_schema if full_schema else json_schema
+		if processed_refs is None:
+			processed_refs = set()
+		keys = []
+		if isinstance(json_schema, dict):
+			for k, v in json_schema.items(): 
+				if k == "$ref":
+					if v in processed_refs:
+						continue
+					processed_refs.add(v)
+					ref = retrieve_ref(v, full_schema) # json_schema = {'$ref': '#/$defs/Bar'} in above example ,  v = '#/$defs/Bar'
+					keys.append(v.split("/")[1])
+					keys += remove_refs(ref, full_schema, processed_refs)
+					print('Full ref in remove_refs if key == $ref:\t', keys)
+				elif isinstance(v, (list, dict)):
+					keys += remove_refs(v, full_schema, processed_refs)
+					print('Full ref in remove_refs if key != $ref but dict:\t', keys)
+		elif isinstance(json_schema, list):
+			for el in json_schema:
+				keys += remove_refs(el, full_schema, processed_refs)
+			print('Keys if the schema is only a list:\t', keys)
