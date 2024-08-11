@@ -127,3 +127,11 @@ def remove_refs(json_schema, full_schema = None, processed_refs=None): #_infer_s
             keys += remove_refs(el, full_schema, processed_refs)
         print('Keys if the schema is only a list:\t', keys)
     return keys
+    
+def remove_extraneous_keys(json_schema):
+	keys = remove_refs(json_schema)
+	updated_json_schema1 = dereference_refs_helper(json_schema, None, keys)
+	updated_json_schema1.pop('definitions', None) #remove the definitions key if it exists
+	title = updated_json_schema1.pop('title', "") #extract title key
+	default_description = updated_json_schema1.pop('description','') #extract function description
+	return updated_json_schema1, title, default_description
