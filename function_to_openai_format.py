@@ -174,3 +174,65 @@ def get_arguments_and_descriptions(fn:Callable, debug=False): #t BE FORMATTED
 	print('Arg descriptions:\t',arg_descriptions)
 	print('\n')
 	return (name, ' '.join(descriptors), arg_descriptions)
+    
+def update_pydantic_model_schema(pydantic_model, fn, name, descriptors, arg_descriptions):
+	print('**** Extracting details of the validated model ****') #Basically model created from the pydantic version of the function directly
+	print('Validated model schema:\t', pydantic_model.model_json_schema())
+	schema = pydantic_model.model_json_schema()["properties"]
+	print('Properties of validated model:\t', schema)
+
+	print('**** getting the details from the signature() fn of inspect')
+	sig_params = signature(fn).parameters  # Basically from the inspect.signature part
+	print('Validated model keys:\t',sig_params)
+
+	print('****Creating a dict that has { key=sig_params.items.keys() i.e. inspect.signature and value = schema[key] where schema is what we get from the validated models schama properties entity}')
+	field_names={}
+	for k,v in sig_params.items():
+		print(f'Key:\t',k,'\tValue:\t',v)
+		print('V name:\t',v.name)
+		print({k:schema[k]})  # {k = 'query' value = schema['query'] i.e. {'title': 'Query', 'type': 'string'}}
+		print('\n')
+		field_names.update({k:schema[k]})
+	print('Field names', field_names)
+	print('\n')
+	print('*** Updating the pydantic model Field object with the detauls from the field names')
+	print('Fields of validated model:\t', pydantic_model.model_fields)
+	fields = {}
+	for fieldname in field_names:
+		print('Field name:\t', fieldname) #'query'
+		model_field = pydantic_model.model_fields[fieldname]
+		print('All model fields:\t', pydantic_model.model_fields)
+		print('Model field:\t',model_field)
+		print('Type of model field:\t',type(model_field))
+		print('is field required:\t', model_field.is_required)
+		print('Outer type????:\t', model_field.annotation)
+		print('Detailed annotations',model_field.__annotations__)
+		if model_field.is_required and not 'None' in str(model_field.annotation): #get the field type only if it is mandatory else set it as Optional[dtype]
+			t = model_field.annotation
+		else:
+			t = Optional[model_field.annotation]
+		print('t:\t',t)
+		print('Arg descriptions:\t',arg_descriptions)
+		print('field name:\t',fieldname) #{'query': (<class 'str'>, FieldInfo(default=Ellipsis, description='The search query.', extra={}))}
+		if arg_descriptions and fieldname in arg_descriptions:
+			print('Field. field_info',model_field.from_field(fieldname))
+			print('Field. field_info description',model_field.description)
+			model_field.description=arg_descriptions[fieldname]
+			print('Field. field_info post updation',model_field.description)
+		else:
+			print('Not present')
+		fields[fieldname] = (t, model_field)
+	print('Final fields:\t', fields) # {'query': (<class 'str'>, FieldInfo(default=Ellipsis, description='The search query.', extra={}))}
+	for field_name_key in fields:
+		print('Type of final fields:\t', type(fields[field_name_key][1]))
+	try:
+		final_model = create_model(name, **fields)
+	except Exception as e:
+		print('Final model could not be created:Exception\t',e)
+	print('Initial final model type:\t', type(final_model))
+	print('Initial final model doc:\t', dict[final_model])
+	print('Descriptors to go into the model:\t', descriptors)
+	final_model.__doc__ = ' '.join(descriptors).strip()	
+	print('Func desc as per validated model\t:', final_model.__doc__)
+	print('Does the final model have the attribute model_json_schema:\t',hasattr(final_model, "model_json_schema"))
+	return final_model
