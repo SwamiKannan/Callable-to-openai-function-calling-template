@@ -135,3 +135,42 @@ def remove_extraneous_keys(json_schema):
 	title = updated_json_schema1.pop('title', "") #extract title key
 	default_description = updated_json_schema1.pop('description','') #extract function description
 	return updated_json_schema1, title, default_description
+    
+def get_arguments_and_descriptions(fn:Callable, debug=False): #t BE FORMATTED
+	docstring = inspect.getdoc(fn)
+	name = fn.__name__
+	print('Inspect.getdoc:\t',docstring) #gets the entire docstring of the function
+	blocks = docstring.split("\n\n")
+	print('Docstring Blocks:\t', blocks)
+	descriptors = []
+	args_block = None
+	past_descriptors = False
+	for block in blocks:
+		if block.strip().startswith("Args:"):
+			args_block = block
+			break
+		elif block.strip().startswith("Returns:") or block.startswith("Example:"):         # Don't break in case Args come after 
+			past_descriptors = True
+		elif not past_descriptors:
+			descriptors.append(block)
+		else:
+			continue
+	print('Descriptors:\t',descriptors)
+	print('String descriptors:\t',' '.join(descriptors))
+	arg_descriptions = {}
+	print('args block:\t',args_block)
+	if args_block:
+		arg = None
+		for line in args_block.split("\n")[1:]:
+			if ":" in line:
+				arg, desc = line.split(":", maxsplit=1)
+				print('Description before stripping arg types',arg)
+				arg = arg.split('(')[0]
+				print('Description after stripping arg types',arg)
+				arg_descriptions[arg.strip()] = desc.strip()
+			elif arg:
+				print('No desc')
+				arg_descriptions[arg.strip()] += " " + line.strip()
+	print('Arg descriptions:\t',arg_descriptions)
+	print('\n')
+	return (name, ' '.join(descriptors), arg_descriptions)
