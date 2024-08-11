@@ -175,28 +175,33 @@ def get_arguments_and_descriptions(fn:Callable, debug=False): #t BE FORMATTED
 	print('\n')
 	return (name, ' '.join(descriptors), arg_descriptions)
     
-def update_pydantic_model_schema(pydantic_model, fn, name, descriptors, arg_descriptions):
-	print('**** Extracting details of the validated model ****') #Basically model created from the pydantic version of the function directly
-	print('Validated model schema:\t', pydantic_model.model_json_schema())
+def update_pydantic_model_schema(pydantic_model, fn, name, descriptors, arg_descriptions, debug = False):
+    if debug:
+        print('**** Extracting details of the validated model ****') #Basically model created from the pydantic version of the function directly
+        print('Validated model schema:\t', pydantic_model.model_json_schema())
 	schema = pydantic_model.model_json_schema()["properties"]
-	print('Properties of validated model:\t', schema)
+    if debug:
+        print('Properties of validated model:\t', schema)
 
-	print('**** getting the details from the signature() fn of inspect')
+        print('**** getting the details from the signature() fn of inspect')
 	sig_params = signature(fn).parameters  # Basically from the inspect.signature part
-	print('Validated model keys:\t',sig_params)
+    if debug:
+        print('Validated model keys:\t',sig_params)
 
-	print('****Creating a dict that has { key=sig_params.items.keys() i.e. inspect.signature and value = schema[key] where schema is what we get from the validated models schama properties entity}')
+        print('****Creating a dict that has { key=sig_params.items.keys() i.e. inspect.signature and value = schema[key] where schema is what we get from the validated models schama properties entity}')
 	field_names={}
 	for k,v in sig_params.items():
-		print(f'Key:\t',k,'\tValue:\t',v)
-		print('V name:\t',v.name)
-		print({k:schema[k]})  # {k = 'query' value = schema['query'] i.e. {'title': 'Query', 'type': 'string'}}
-		print('\n')
+        if debug:
+            print(f'Key:\t',k,'\tValue:\t',v)
+            print('V name:\t',v.name)
+            print({k:schema[k]})  # {k = 'query' value = schema['query'] i.e. {'title': 'Query', 'type': 'string'}}
+            print('\n')
 		field_names.update({k:schema[k]})
-	print('Field names', field_names)
-	print('\n')
-	print('*** Updating the pydantic model Field object with the detauls from the field names')
-	print('Fields of validated model:\t', pydantic_model.model_fields)
+    if debug:
+        print('Field names', field_names)
+        print('\n')
+        print('*** Updating the pydantic model Field object with the detauls from the field names')
+        print('Fields of validated model:\t', pydantic_model.model_fields)
 	fields = {}
 	for fieldname in field_names:
 		print('Field name:\t', fieldname) #'query'
