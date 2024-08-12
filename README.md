@@ -30,3 +30,24 @@ tools=[
       }
     }
 ```
+Ironically, Langchain has a function called **convert_to_openai_function** . Hence, if you are already using Langchain, you can directly import this function as:
+```
+from langchain_core.utils.function_calling import convert_to_openai_function
+```
+This tool can convert both normal Python functions and tool objects. Tool objects are as:
+```
+from langchain.tools import tool
+
+@tool
+def function_example(*args, **kwargs) -> <return type>
+    <doctype>
+
+    Args:
+      arg1:
+
+    Returns:
+      <return type>
+
+openai_representation = convert_to_openai_function(function_example)
+```
+This library gets it done. 
