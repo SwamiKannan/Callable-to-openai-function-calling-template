@@ -41,7 +41,7 @@ def remove_titles(kv: dict, prev_key: str = "", ) -> dict: #_infer_skip_keys fro
 				new_kv[k] = v
 		return new_kv
 
-def dereference_refs_helper(obj, full_schema, skip_keys, processed_refs=None):
+def dereference_refs_helper(obj, full_schema, skip_keys, processed_refs=None, debug=False):
 		'''
 		Will remove from the obj schema the entire key, value pair where the key==skip_key
 		'''
@@ -58,7 +58,7 @@ def dereference_refs_helper(obj, full_schema, skip_keys, processed_refs=None):
 					if v in processed_refs:
 						continue
 					processed_refs.add(v)
-					ref = retrieve_ref(v, full_schema)
+					ref = retrieve_ref(v, full_schema, debug)
 					full_ref = dereference_refs_helper(
 						ref, full_schema, skip_keys, processed_refs
 					)
@@ -100,42 +100,45 @@ def retrieve_ref(path, schema, debug=False): #_retrieve_ref in langchain
 			else:
 				raise KeyError(f"Reference '{path}' not found.")
 		return deepcopy(out)
-        
-def remove_refs(json_schema, full_schema = None, processed_refs=None): #_infer_skip_keys - For this example, it will return ['$defs']
-    '''
-    refs format is used when one class's object is used as another's variable. A typical json format using this would be:
-    {
-        '$defs': {'Bar': {'properties': {}, 'title': 'Bar', 'type': 'object'}},
-        'properties': {'x': {'$ref': '#/$defs/Bar'}},
-        'required': ['x'],
-        'title': 'Foo',
-        'type': 'object',
-    }
-    where a Bar object is an instancevariable of class Foo
-    '''
-    full_schema = full_schema if full_schema else json_schema
-    if processed_refs is None:
-        processed_refs = set()
-    keys = []
-    if isinstance(json_schema, dict):
-        for k, v in json_schema.items(): 
-            if k == "$ref":
-                if v in processed_refs:
-                    continue
-                processed_refs.add(v)
-                ref = retrieve_ref(v, full_schema) # json_schema = {'$ref': '#/$defs/Bar'} in above example ,  v = '#/$defs/Bar'
-                keys.append(v.split("/")[1])
-                keys += remove_refs(ref, full_schema, processed_refs)
-                print('Full ref in remove_refs if key == $ref:\t', keys)
-            elif isinstance(v, (list, dict)):
-                keys += remove_refs(v, full_schema, processed_refs)
-                print('Full ref in remove_refs if key != $ref but dict:\t', keys)
-    elif isinstance(json_schema, list):
-        for el in json_schema:
-            keys += remove_refs(el, full_schema, processed_refs)
-        print('Keys if the schema is only a list:\t', keys)
-    return keys
-    
+
+def remove_refs(json_schema, full_schema = None, processed_refs=None, debug=False): #_infer_skip_keys - For this example, it will return ['$defs']
+		'''
+		refs format is used when one class's object is used as another's variable. A typical json format using this would be:
+		{
+			'$defs': {'Bar': {'properties': {}, 'title': 'Bar', 'type': 'object'}},
+			'properties': {'x': {'$ref': '#/$defs/Bar'}},
+			'required': ['x'],
+			'title': 'Foo',
+			'type': 'object',
+		}
+		where a Bar object is an instancevariable of class Foo
+		'''
+		full_schema = full_schema if full_schema else json_schema
+		if processed_refs is None:
+			processed_refs = set()
+		keys = []
+		if isinstance(json_schema, dict):
+			for k, v in json_schema.items(): 
+				if k == "$ref":
+					if v in processed_refs:
+						continue
+					processed_refs.add(v)
+					ref = retrieve_ref(v, full_schema, debug) # json_schema = {'$ref': '#/$defs/Bar'} in above example ,  v = '#/$defs/Bar'
+					keys.append(v.split("/")[1])
+					keys += remove_refs(ref, full_schema, processed_refs)
+					print('Full ref in remove_refs if key == $ref:\t', keys)
+				elif isinstance(v, (list, dict)):
+					keys += remove_refs(v, full_schema, processed_refs)
+					if debug:
+						print('Full ref in remove_refs if key != $ref but dict:\t', keys)
+		elif isinstance(json_schema, list):
+			for el in json_schema:
+				keys += remove_refs(el, full_schema, processed_refs)
+			if debug:
+				print('Keys if the schema is only a list:\t', keys)
+		return keys
+
+
 def remove_extraneous_keys(json_schema):
 	keys = remove_refs(json_schema)
 	updated_json_schema1 = dereference_refs_helper(json_schema, None, keys)
@@ -143,7 +146,7 @@ def remove_extraneous_keys(json_schema):
 	title = updated_json_schema1.pop('title', "") #extract title key
 	default_description = updated_json_schema1.pop('description','') #extract function description
 	return updated_json_schema1, title, default_description
-    
+
 def get_arguments_and_descriptions(fn:Callable, debug=False): #t BE FORMATTED
 	docstring = inspect.getdoc(fn)
 	name = fn.__name__
@@ -163,75 +166,84 @@ def get_arguments_and_descriptions(fn:Callable, debug=False): #t BE FORMATTED
 			descriptors.append(block)
 		else:
 			continue
-	print('Descriptors:\t',descriptors)
-	print('String descriptors:\t',' '.join(descriptors))
+	if debug:
+		print('Descriptors:\t',descriptors)
+		print('String descriptors:\t',' '.join(descriptors))
 	arg_descriptions = {}
-	print('args block:\t',args_block)
+	if debug:
+		print('args block:\t',args_block)
 	if args_block:
 		arg = None
 		for line in args_block.split("\n")[1:]:
 			if ":" in line:
 				arg, desc = line.split(":", maxsplit=1)
-				print('Description before stripping arg types',arg)
+				if debug:
+					print('Description before stripping arg types',arg)
 				arg = arg.split('(')[0]
-				print('Description after stripping arg types',arg)
 				arg_descriptions[arg.strip()] = desc.strip()
+				if debug:
+					print('Description after stripping arg types',arg)
 			elif arg:
-				print('No desc')
+				if debug:
+					print('No desc')
 				arg_descriptions[arg.strip()] += " " + line.strip()
-	print('Arg descriptions:\t',arg_descriptions)
-	print('\n')
+	if debug:
+		print('Arg descriptions:\t',arg_descriptions)
+		print('\n')
 	return (name, ' '.join(descriptors), arg_descriptions)
-    
-def update_pydantic_model_schema(pydantic_model, fn, name, descriptors, arg_descriptions, debug = False):
-    if debug:
-        print('**** Extracting details of the validated model ****') #Basically model created from the pydantic version of the function directly
-        print('Validated model schema:\t', pydantic_model.model_json_schema())
+	
+def update_pydantic_model_schema(pydantic_model:BaseModel, fn:Callable, name:str, descriptors:str, arg_descriptions:dict, debug:bool=False):
+	if debug:
+		print('**** Extracting details of the validated model ****') #Basically model created from the pydantic version of the function directly
+		print('Validated model schema:\t', pydantic_model.model_json_schema())
 	schema = pydantic_model.model_json_schema()["properties"]
-    if debug:
-        print('Properties of validated model:\t', schema)
-
-        print('**** getting the details from the signature() fn of inspect')
+	if debug:
+		print('Properties of validated model:\t', schema)
+		print('**** getting the details from the signature() fn of inspect')
 	sig_params = signature(fn).parameters  # Basically from the inspect.signature part
-    if debug:
-        print('Validated model keys:\t',sig_params)
-
-        print('****Creating a dict that has { key=sig_params.items.keys() i.e. inspect.signature and value = schema[key] where schema is what we get from the validated models schama properties entity}')
+	if debug:
+		print('Validated model keys:\t',sig_params)
+		print('****Creating a dict that has { key=sig_params.items.keys() i.e. inspect.signature and value = schema[key] where schema is what we get from the validated models schama properties entity}')
 	field_names={}
 	for k,v in sig_params.items():
-        if debug:
-            print(f'Key:\t',k,'\tValue:\t',v)
-            print('V name:\t',v.name)
-            print({k:schema[k]})  # {k = 'query' value = schema['query'] i.e. {'title': 'Query', 'type': 'string'}}
-            print('\n')
+		if debug:
+			print(f'Key:\t',k,'\tValue:\t',v)
+			print('V name:\t',v.name)
+			print({k:schema[k]})  # {k = 'query' value = schema['query'] i.e. {'title': 'Query', 'type': 'string'}}
+			print('\n')
 		field_names.update({k:schema[k]})
-    if debug:
-        print('Field names', field_names)
-        print('\n')
-        print('*** Updating the pydantic model Field object with the detauls from the field names')
-        print('Fields of validated model:\t', pydantic_model.model_fields)
+	if debug:
+		print('Field names', field_names)
+		print('\n')
+		print('*** Updating the pydantic model Field object with the detauls from the field names')
+		print('Fields of validated model:\t', pydantic_model.model_fields)
 	fields = {}
 	for fieldname in field_names:
-		print('Field name:\t', fieldname) #'query'
+		if debug:
+			print('Field name:\t', fieldname) #'query'
 		model_field = pydantic_model.model_fields[fieldname]
-		print('All model fields:\t', pydantic_model.model_fields)
-		print('Model field:\t',model_field)
-		print('Type of model field:\t',type(model_field))
-		print('is field required:\t', model_field.is_required)
-		print('Outer type????:\t', model_field.annotation)
-		print('Detailed annotations',model_field.__annotations__)
+		if debug:
+			print('All model fields:\t', pydantic_model.model_fields)
+			print('Model field:\t',model_field)
+			print('Type of model field:\t',type(model_field))
+			print('is field required:\t', model_field.is_required)
+			print('Outer type????:\t', model_field.annotation)
+			print('Detailed annotations',model_field.__annotations__)
 		if model_field.is_required and not 'None' in str(model_field.annotation): #get the field type only if it is mandatory else set it as Optional[dtype]
 			t = model_field.annotation
 		else:
 			t = Optional[model_field.annotation]
-		print('t:\t',t)
-		print('Arg descriptions:\t',arg_descriptions)
-		print('field name:\t',fieldname) #{'query': (<class 'str'>, FieldInfo(default=Ellipsis, description='The search query.', extra={}))}
+		if debug:
+			print('t:\t',t)
+			print('Arg descriptions:\t',arg_descriptions)
+			print('field name:\t',fieldname) #{'query': (<class 'str'>, FieldInfo(default=Ellipsis, description='The search query.', extra={}))}
 		if arg_descriptions and fieldname in arg_descriptions:
-			print('Field. field_info',model_field.from_field(fieldname))
-			print('Field. field_info description',model_field.description)
+			if debug:
+				print('Field. field_info',model_field.from_field(fieldname))
+				print('Field. field_info description',model_field.description)
 			model_field.description=arg_descriptions[fieldname]
-			print('Field. field_info post updation',model_field.description)
+			if debug:
+				print('Field. field_info post updation',model_field.description)
 		else:
 			print('Not present')
 		fields[fieldname] = (t, model_field)
