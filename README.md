@@ -57,3 +57,9 @@ This library is partially based on Langchain's convert_to_openai_function. Howev
 1. This library strips out a lot of the extraneous checks and balances that Langchain's function uses since it accomodates multiple types of inputs to this function. If you follow the template attached for your function definition, you should be fine.
 2. Completely based on Pydantic v2.
 3. I had quite a few issues with multiple changes to their codebase when I tried using their function such as multiple arguments to a function were not recognized, different types of objects were output depending on whether you were inputting a tool or a function. Hence, downstream accessibility to the function object and LLM function call extractions became a pain.
+
+## Usage
+```
+from function_to_openai_format import convert_function
+tool_format = convert_function(function) # function is the name of your function. But it should not be a string. It should be a function object or Callable.
+```
