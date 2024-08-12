@@ -7,7 +7,7 @@ from typing import Optional, Callable, Any, Type, Dict, Sequence, Set
 from pydantic import create_model, BaseModel, Field
 from pydantic.alias_generators import to_pascal
 
-ef validate_call_model(f: Callable[..., Any], debug:bool=False) -> Type[BaseModel]:
+def validate_call_model(f: Callable[..., Any], debug:bool=False) -> Type[BaseModel]:
 		signature = inspect.signature(f)
 		parameters = signature.parameters
 		field_definitions: dict[str, Any] = {}
