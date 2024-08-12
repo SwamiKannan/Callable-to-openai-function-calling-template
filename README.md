@@ -63,3 +63,48 @@ This library is partially based on Langchain's convert_to_openai_function. Howev
 from function_to_openai_format import convert_function
 tool_format = convert_function(function) # function is the name of your function. But it should not be a string. It should be a function object or Callable.
 ```
+
+## Comparison between this function output and OpenAI format
+### 1. One argument:
+   ```
+   def search_information(query: str) -> dict:
+    """
+    Get information, facts and data on all general knowledge and current events across the world. 
+    It could also answer questions that other functions may not be able to answer.
+
+    Args:
+        query : The search query.
+
+    Returns:
+        list: A list of dictionaries containing the URL, text content, and table data for each scraped page.
+    """
+   num_results = 2
+    url = 'https://www.google.com/search'
+    params = {'q': query, 'num': num_results}
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.61 Safari/537.3'}
+    
+    # inference_logger.info(f"Performing google search with query: {query}\nplease wait...")
+    response = requests.get(url, params=params, headers=headers)
+    soup = BeautifulSoup(response.text, 'html.parser')
+    urls = [result.find('a')['href'] for result in soup.find_all('div', class_='tF2Cxc')]
+    
+    # inference_logger.info(f"Scraping text from urls, please wait...") 
+    # [inference_logger.info(url) for url in urls]
+    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+        futures = [executor.submit(lambda url: (url, requests.get(url, headers=headers).text if isinstance(url, str) else None), url) for url in urls[:num_results] if isinstance(url, str)]
+        results = []
+        for future in concurrent.futures.as_completed(futures):
+            url, html = future.result()
+            soup = BeautifulSoup(html, 'html.parser')
+            paragraphs = [p.text.strip() for p in soup.find_all('p') if p.text.strip()]
+            text_content = ' '.join(paragraphs)
+            text_content = re.sub(r'\s+', ' ', text_content)
+            table_data = [[cell.get_text(strip=True) for cell in row.find_all('td')] for table in soup.find_all('table') for row in table.find_all('tr')]
+            if text_content or table_data:
+                results.append({'url': url, 'content': text_content, 'tables': table_data})
+    return results
+   ```
+#### OpenAI format:
+```
+
+```
