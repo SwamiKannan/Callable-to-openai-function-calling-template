@@ -30,7 +30,8 @@ tools=[
       }
     }
 ```
-Ironically, Langchain has a function called **convert_to_openai_function** . Hence, if you are already using Langchain, you can directly import this function as:
+## Langchain
+If you are using the Langchain framework, there is an in-built function called **convert_to_openai_function** . Hence, if you are already using Langchain, you can directly import this function as:
 ```
 from langchain_core.utils.function_calling import convert_to_openai_function
 ```
@@ -50,4 +51,7 @@ def function_example(*args, **kwargs) -> <return type>
 
 openai_representation = convert_to_openai_function(function_example)
 ```
-This library gets it done. 
+However, if you are not using Langchain, installing it for just this functionality makes no sense. This library acts as a substitute
+## Details
+This library is partially based on Langchain's convert_to_openai_function. However:
+1. This is a stripped-down version of the 
