@@ -7,7 +7,7 @@ from typing import Optional, Callable, Any, Type, Dict, Sequence, Set
 from pydantic import create_model, BaseModel, Field
 from pydantic.alias_generators import to_pascal
 
-def validate_call_model(f: Callable[..., Any]) -> Type[BaseModel]:
+ef validate_call_model(f: Callable[..., Any], debug:bool=False) -> Type[BaseModel]:
 		signature = inspect.signature(f)
 		parameters = signature.parameters
 		field_definitions: dict[str, Any] = {}
@@ -20,6 +20,11 @@ def validate_call_model(f: Callable[..., Any]) -> Type[BaseModel]:
 			field_definitions[name] = (annotation, default)
 
 		model = create_model(to_pascal(f.__name__), __module__=str(f.__module__), **field_definitions)
+		if debug:
+			print('Type of validated model:\t', type(model))
+			print('Fields of validated model',model.model_fields)
+			print('Keys of fields of validated models',model.model_fields.keys())
+			print('\n')
 		return model
 
 def remove_titles(kv: dict, prev_key: str = "", ) -> dict: #_infer_skip_keys from langchain
