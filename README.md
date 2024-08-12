@@ -136,3 +136,19 @@ def clasp(a:int,b:int) -> int:
 ```
 {'name': 'clasp', 'description': 'Get company profile and overview for a given stock symbol.', 'parameters': { 'properties': {'a': {'description': 'one integer', 'type': 'integer'}, 'b': {'description': 'another integer', 'type': 'integer'}}, 'required': ['a', 'b'], 'type': 'object' }}
 ```
+### 3. Functions with no arguments:
+```
+def introduction() -> str:
+    """
+    Get company profile and overview for a given stock symbol.
+
+    Args:
+
+
+    Returns:
+        str : A string that confirms completion of function execution
+    """
+    stringer = 'Hello this is me !!!'
+    print(stringer)
+    return stringer
+```
