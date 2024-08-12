@@ -260,4 +260,21 @@ def update_pydantic_model_schema(pydantic_model:BaseModel, fn:Callable, name:str
 	final_model.__doc__ = ' '.join(descriptors).strip()	
 	print('Func desc as per validated model\t:', final_model.__doc__)
 	print('Does the final model have the attribute model_json_schema:\t',hasattr(final_model, "model_json_schema"))
-	return final_model
+	schema = final_model.model_json_schema()
+	return schema
+
+def get_json_schema(pri:Callable, debug = False):
+	args = inspect.getfullargspec(pri).args
+	if debug:
+		print('Inspect function:\t', inspect.getfullargspec(pri).args)
+	if len(args)>0:
+		validated_model = validate_call_model(pri, debug)
+		anno = inspect.get_annotations(pri)
+		if debug:
+			print('Annotations:\t', anno) # returns{'query': <class 'str'>, 'return': <class 'dict'>}
+			print('Annotation type:\t', type(anno))
+			print('\n')
+		name, descriptors, argument_descriptions = get_arguments_and_descriptions(pri, debug=debug)
+		interim_schema = update_pydantic_model_schema(validated_model, pri, name, descriptors, argument_descriptions)
+		
+		
