@@ -60,20 +60,20 @@ def dereference_refs_helper(obj, full_schema, skip_keys, processed_refs=None, de
 					processed_refs.add(v)
 					ref = retrieve_ref(v, full_schema, debug)
 					full_ref = dereference_refs_helper(
-						ref, full_schema, skip_keys, processed_refs
+						ref, full_schema, skip_keys, processed_refs, debug = debug
 					)
 					processed_refs.remove(v)
 					return full_ref
 				elif isinstance(v, (list, dict)):
 					obj_out[k] = dereference_refs_helper(
-						v, full_schema, skip_keys, processed_refs
+						v, full_schema, skip_keys, processed_refs, debug = debug
 					)
 				else:
 					obj_out[k] = v
 			return obj_out
 		elif isinstance(obj, list):
 			return [
-				dereference_refs_helper(el, full_schema, skip_keys, processed_refs)
+				dereference_refs_helper(el, full_schema, skip_keys, processed_refs, debug = debug)
 				for el in obj
 			]
 		else:
@@ -139,9 +139,9 @@ def remove_refs(json_schema, full_schema = None, processed_refs=None, debug=Fals
 		return keys
 
 
-def remove_extraneous_keys(json_schema):
+def remove_extraneous_keys(json_schema, debug=False):
 	keys = remove_refs(json_schema)
-	updated_json_schema1 = dereference_refs_helper(json_schema, None, keys)
+	updated_json_schema1 = dereference_refs_helper(json_schema, None, keys,debug = debug)
 	updated_json_schema1.pop('definitions', None) #remove the definitions key if it exists
 	title = updated_json_schema1.pop('title', "") #extract title key
 	default_description = updated_json_schema1.pop('description','') #extract function description
