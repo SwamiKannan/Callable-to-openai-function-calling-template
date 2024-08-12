@@ -54,4 +54,6 @@ openai_representation = convert_to_openai_function(function_example)
 However, if you are not using Langchain, installing it for just this functionality makes no sense. This library acts as a substitute
 ## Details
 This library is partially based on Langchain's convert_to_openai_function. However:
-1. This is a stripped-down version of the 
+1. This library strips out a lot of the extraneous checks and balances that Langchain's function uses since it accomodates multiple types of inputs to this function. If you follow the template attached for your function definition, you should be fine.
+2. Completely based on Pydantic v2.
+3. I had quite a few issues with multiple changes to their codebase when I tried using their function such as multiple arguments to a function were not recognized, different types of objects were output depending on whether you were inputting a tool or a function. Hence, downstream accessibility to the function object and LLM function call extractions became a pain.
