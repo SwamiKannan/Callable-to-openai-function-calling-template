@@ -79,17 +79,20 @@ def dereference_refs_helper(obj, full_schema, skip_keys, processed_refs=None):
 		else:
 			return obj
 		
-def retrieve_ref(path, schema): #_retrieve_ref in langchain
-		print('Original path in retrieve_ref:\t', path)
+def retrieve_ref(path, schema, debug=False): #_retrieve_ref in langchain
+		if debug:
+			print('Original path in retrieve_ref:\t', path)
 		components = path.split("/")  # path = '#/$defs/Bar' ; schema = {'$ref': '#/$defs/Bar'} in example
 		if components[0] != "#":
 			raise ValueError(
 			"ref paths are expected to be URI fragments, meaning they should start with #."
 		)
 		out = schema
-		print('Original schema in retrieve_ref:\t',out)
+		if debug:
+			print('Original schema in retrieve_ref:\t',out)
 		for component in components[1:]: # [$defs,Bar]
-			print('Component in retrieve_ref:\t', component)
+			if debug:
+				print('Component in retrieve_ref:\t', component)
 			if component in out:
 				out = out[component]
 			elif component.isdigit() and int(component) in out:
