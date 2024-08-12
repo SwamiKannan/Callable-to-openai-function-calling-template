@@ -152,3 +152,11 @@ def introduction() -> str:
     print(stringer)
     return stringer
 ```
+#### OpenAI format:
+```
+{'name': 'introduction', 'description': 'Get company profile and overview for a given stock symbol.', 'parameters': {'type': 'object', 'properties': {}}}
+```
+#### Using convert_function()
+```
+{'name': 'introduction', 'description': 'Get company profile and overview for a given stock symbol.', 'parameters': {'properties': {}, 'type': 'object'}}
+```
