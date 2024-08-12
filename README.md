@@ -65,7 +65,7 @@ tool_format = convert_function(function) # function is the name of your function
 ```
 
 ## Comparison between this function output and OpenAI format
-### 1. One argument:
+### 1. Functions with one argument:
    ```
    def search_information(query: str) -> dict:
     """
@@ -111,3 +111,20 @@ tool_format = convert_function(function) # function is the name of your function
 #### Using convert_function()
 ```
 {'name': 'search_information', 'description': 'Get information, facts and data on all general knowledge and current events across the world. \nIt could also answer questions that other functions may not be able to answer.', 'parameters': {'properties': {'query': {'description': 'The search query.', 'type': 'string'}}, 'required': ['query'], 'type': 'object'}}
+```
+### Functions with two arguments:
+```
+def clasp(a:int,b:int) -> int:
+    """
+    Get company profile and overview for a given stock symbol.
+
+    Args:
+        a : one integer
+        b : another integer
+
+    Returns:
+        str : A string that confirms completion of function execution
+    """
+    c = a+b
+    return c
+```
