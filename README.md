@@ -164,3 +164,6 @@ def introduction() -> str:
 ```
 {'name': 'introduction', 'description': 'Get company profile and overview for a given stock symbol.', 'parameters': {'properties': {}, 'type': 'object'}}
 ```
+
+## Note:
+
