@@ -35,7 +35,7 @@ tools=[
  However, OpenAI weirdly, does not provide tools to directly convert a function definition into this template. Hence, everyone has to manually construct this template from their function, making that a time consuming process. This library seeks to automate this translation.
  
 ## Langchain
-If you are using the Langchain framework, there is an in-built function called **convert_to_openai_function** . Hence, if you are already using Langchain, you can directly import this function as:
+If you are using the Langchain framework, there is an in-built function called **convert_to_openai_function** . Hence, if you are already using Langchain, you can directly import this functionality as follows:
 ```
 from langchain_core.utils.function_calling import convert_to_openai_function
 ```
@@ -60,12 +60,12 @@ However, if you are not using Langchain, installing it for just this functionali
 This library is partially based on Langchain's convert_to_openai_function. However:
 1. This library strips out a lot of the extraneous checks and balances that Langchain's function uses since it accomodates multiple types of inputs to this function. If you follow the template attached for your function definition, you should be fine.
 2. Completely based on Pydantic v2.
-3. I had quite a few issues with multiple changes to their codebase when I tried using their function such as multiple arguments to a function were not recognized, different types of objects were outputted depending on whether you were inputting a tool or a function. Hence, downstream accessibility to the function object and LLM function call extractions became a pain.
+3. I had quite a few issues with multiple changes to their codebase when I tried using their function such as multiple arguments to a function were not recognized, different types of objects were outputted depending on whether you were inputting a tool or a function. Hence, downstream accessibility to the output dictionary had to be parsed differently depending on whether you were using the function directly or as a tool.
 
 ## Usage
 ```
 from function_to_openai_format import convert_function
-tool_format = convert_function(function) # function is the name of your function. But it should not be a string. It should be a function object or Callable.
+tool_format = convert_function(function) # function is the name of your function. But it should not be a string. It should be a function object or a callable.
 ```
 
 ## Comparison between this function output and OpenAI format
