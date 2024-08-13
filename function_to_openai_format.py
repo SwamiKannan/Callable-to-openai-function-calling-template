@@ -267,5 +267,39 @@ def update_pydantic_model_schema(pydantic_model:BaseModel, fn:Callable, name:str
 	if debug:
 		print('Final schema:\t', schema)
 	return schema
+    
+    def get_json_schema(pri:Callable, debug = False):
+	args = inspect.getfullargspec(pri).args
+	if debug:
+		print('Inspect function:\t', inspect.getfullargspec(pri).args)
+	if len(args)>0:
+		validated_model = validate_call_model(pri, debug)
+		anno = inspect.get_annotations(pri)
+		if debug:
+			print('Annotations:\t', anno) # returns{'query': <class 'str'>, 'return': <class 'dict'>}
+			print('Annotation type:\t', type(anno))
+			print('\n')
+		name, descriptors, argument_descriptions = get_arguments_and_descriptions(pri, debug=debug)
+		interim_schema , interim_model = update_pydantic_model_schema(validated_model, pri, name, descriptors, argument_descriptions)
+
+		if debug:
+			print('***** Removing any $refs from the json schema (Refer function defintion for details)')
+		updated_schema, title, description = remove_extraneous_keys(interim_schema)
+		removed_title = remove_titles(updated_schema)
+		removed_title.pop('description',None)
+		final_dict = {"name": name or title,
+				"description": interim_model.__doc__ or description,
+				"parameters":removed_title if interim_schema else updated_schema}
+	else:
+		final_dict = {
+			"name":pri.__name__,
+			"description":list(get_docstring(pri).values())[0],
+			"parameters":
+			{
+				"type":"object",
+				"properties":{}
+			}
+		}
+	return final_dict
 		
 		
