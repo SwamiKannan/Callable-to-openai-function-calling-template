@@ -6,6 +6,17 @@ import inspect
 from typing import Optional, Callable, Any, Type, Dict, Sequence, Set
 from pydantic import create_model, BaseModel, Field
 from pydantic.alias_generators import to_pascal
+import ast
+
+def get_docstring(f:Callable) ->list: #Extracts the docstring of a given openai formatted function item
+	name = f.__name__
+	doctext = f.__doc__
+	print('Doctext:\t',doctext)
+	# ind1 = doctext.find('->')+len('->')
+	# start_ind = ind1+doctext[ind1:].find(' - ')+len(' - ')
+	end_ind = doctext.find('Args')
+	final_docstring = doctext[:end_ind].strip().replace('\n','').strip()
+	return {name:final_docstring}
 
 def validate_call_model(f: Callable[..., Any], debug:bool=False) -> Type[BaseModel]:
 		signature = inspect.signature(f)
@@ -266,9 +277,9 @@ def update_pydantic_model_schema(pydantic_model:BaseModel, fn:Callable, name:str
 	schema = final_model.model_json_schema()
 	if debug:
 		print('Final schema:\t', schema)
-	return schema
-    
-    def get_json_schema(pri:Callable, debug = False):
+	return schema, final_model
+
+def get_json_schema(pri:Callable, debug = False):
 	args = inspect.getfullargspec(pri).args
 	if debug:
 		print('Inspect function:\t', inspect.getfullargspec(pri).args)
@@ -301,5 +312,16 @@ def update_pydantic_model_schema(pydantic_model:BaseModel, fn:Callable, name:str
 			}
 		}
 	return final_dict
-		
-		
+
+def find_tools(functions_path = 'src//functions.py'):
+	methods = []
+	f = open(functions_path, 'r')
+	text = f.read()
+	p = ast.parse(text)
+	for node in ast.walk(p):
+		if isinstance(node, ast.FunctionDef):
+			methods.append(node.name)
+	return methods	
+#testing
+if __name__=="__main__":
+	pass
