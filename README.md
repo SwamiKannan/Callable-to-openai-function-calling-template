@@ -2,8 +2,9 @@
 ![](images/cover.png)
 
  ## Introduction
- OpenAI has defined the LLM standard template for [tool calling](https://platform.openai.com/docs/assistants/tools/function-calling) . This helps ensure consistency across multiple LLMs and their fine tuned  / quantized versions as they too follow the same standard template for their function calling functionalities. Having a standard also helps inference platforms like [Ollama](https://ollama.com/) and [Llama.cpp](https://github.com/ggerganov/llama.cpp) use these templates to execute function calls on their platforms. Hence, it is super useful to maintain this template for all model training and fine-tuning experiments. <br /><br />
- However, OpenAI weirdly, does not provide tools to directly convert a function definition into this template. Hence, everyone has to manually construct this template from their function, making that a time consuming process. An example of this template is as follows: <br />
+ OpenAI has defined the LLM standard template for [tool calling](https://platform.openai.com/docs/assistants/tools/function-calling) . This helps ensure consistency across multiple LLMs and their fine tuned  / quantized versions as they too follow the same standard template for their function calling functionalities. Having a standard also helps inference platforms like [Ollama](https://ollama.com/) and [Llama.cpp](https://github.com/ggerganov/llama.cpp) use these templates to execute function calls on their platforms. Hence, it is super useful to maintain this template for all model training and fine-tuning experiments. <br />
+
+This template is as below:
  
 ```
 tools=[
@@ -30,6 +31,8 @@ tools=[
       }
     }
 ```
+<br />
+ However, OpenAI weirdly, does not provide tools to directly convert a function definition into this template. Hence, everyone has to manually construct this template from their function, making that a time consuming process. This library seeks to automate this translation.
 ## Langchain
 If you are using the Langchain framework, there is an in-built function called **convert_to_openai_function** . Hence, if you are already using Langchain, you can directly import this function as:
 ```
