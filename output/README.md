@@ -25,6 +25,7 @@ def get_name(name:str = 'Swaminathan', options:Literal['1','2','3','4'] = '1'):
 		return (name+'_'+str(options))
 ```
 #### Parsing and processing the function
+##### 1. Parsing to the format of langchain's convert_to_openai_tool()
 ```
 # Setting get_tool_format = True allows returns the json format similar to that is returned when langchain's convert_to_openai_tool() is called with one minor change. The argument descriptions are incorporated within the arguments dictionary.
 # Setting the get_langchain_format = True adds all descriptions in the function description instead as per the langchain format
@@ -53,4 +54,11 @@ print(dict_test)
 		}
 	}
 }
+```
+##### 2. Parsing to the format of langchain's convert_to_openai_function()
+```
+# Setting get_tool_format = True allows returns the json format similar to that is returned when langchain's convert_to_openai_tool() is called with one minor change. The argument descriptions are incorporated within the arguments dictionary.
+# Setting the get_langchain_format = True adds all descriptions in the function description instead as per the langchain format
+dict_test= get_json_schema(get_name,get_tool_format= False, get_langchain_format=False)
+print(dict_test)
 ```
