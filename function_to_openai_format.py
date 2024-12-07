@@ -18,7 +18,6 @@ def validate_call_model(f: Callable[..., Any], debug:bool=False) -> Type[BaseMod
 			if default is param.empty:
 				default = Field(...)
 			field_definitions[name] = (annotation, default)
-
 		model = create_model(to_pascal(f.__name__), __module__=str(f.__module__), **field_definitions)
 		if debug:
 			print('Type of validated model:\t', type(model))
