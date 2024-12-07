@@ -1,6 +1,6 @@
 # Sample exercise in executing script
 
-### Sample function:
+### Sample function with multiple arguments:
 ```
 def get_name(name:str = 'Swaminathan', options:Literal['1','2','3','4'] = '1'):
 		"""
