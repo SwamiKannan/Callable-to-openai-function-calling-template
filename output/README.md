@@ -2,6 +2,7 @@
 
 ### Sample function with multiple arguments:
 ```
+# Sample function to process
 def get_name(name:str = 'Swaminathan', options:Literal['1','2','3','4'] = '1'):
 		"""
 		This is the docstring of the function
@@ -21,4 +22,10 @@ def get_name(name:str = 'Swaminathan', options:Literal['1','2','3','4'] = '1'):
 		"""
 		print('Function is being called')
 		return (name+'_'+str(options))
+```
+
+```
+# Parsing and processing the function
+dict_test= get_json_schema(get_name)
+print(dict_test)
 ```
