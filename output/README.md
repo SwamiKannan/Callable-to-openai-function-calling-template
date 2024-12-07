@@ -1,6 +1,7 @@
 # Sample exercise in executing script
 
 ### Sample function with multiple arguments:
+#### Function to be processed
 ```
 # Sample function to process
 def get_name(name:str = 'Swaminathan', options:Literal['1','2','3','4'] = '1'):
@@ -23,20 +24,21 @@ def get_name(name:str = 'Swaminathan', options:Literal['1','2','3','4'] = '1'):
 		print('Function is being called')
 		return (name+'_'+str(options))
 ```
-
+#### Parsing and processing the function
 ```
-# Parsing and processing the function
 # Setting get_tool_format = True allows returns the json format similar to that is returned when langchain's convert_to_openai_tool() is called with one minor change. The argument descriptions are incorporated within the arguments dictionary.
 # Setting the get_langchain_format = True adds all descriptions in the function description instead as per the langchain format
 dict_test= get_json_schema(get_name,get_tool_format= True, get_langchain_format=True)
 print(dict_test)
 ```
+#### Output (unformatted)
 ```
-# Output (unformatted)
+
 {'type': 'function', 'function': {'name': 'get_name', 'description': '\nThis is the docstring of the function\n\nThe string should contain valid, executable and pure Python code in markdown syntax.\nCode should also import any required Python packages.\n\nArgs:\n\tname : The name of the person \n\toptions : The options that needs to be provided to the user\n\nReturns:\n\tstr: A concatentation of the name and the option chosen\n\nNote:\n\tUse this function with caution, as executing arbitrary code can pose security risks.\n', 'parameters': {'type': 'object', 'properties': {'name': {'default': 'Swaminathan', 'type': 'string'}, 'options': {'default': '1', 'enum': ['1', '2', '3', '4'], 'type': 'string'}}}}}
 ```
+#### Output (manually formatted for clarity)
 ```
-# Output (manually formatted for clarity)
+
 {
 	'type': 'function',
 	'function': {
