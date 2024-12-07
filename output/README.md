@@ -32,3 +32,6 @@ dict_test= get_json_schema(get_name,get_tool_format= True, get_langchain_format=
 print(dict_test)
 ```
 ```
+# Output (unformatted)
+{'type': 'function', 'function': {'name': 'get_name', 'description': '\nThis is the docstring of the function\n\nThe string should contain valid, executable and pure Python code in markdown syntax.\nCode should also import any required Python packages.\n\nArgs:\n\tname : The name of the person \n\toptions : The options that needs to be provided to the user\n\nReturns:\n\tstr: A concatentation of the name and the option chosen\n\nNote:\n\tUse this function with caution, as executing arbitrary code can pose security risks.\n', 'parameters': {'type': 'object', 'properties': {'name': {'default': 'Swaminathan', 'type': 'string'}, 'options': {'default': '1', 'enum': ['1', '2', '3', '4'], 'type': 'string'}}}}}
+```
