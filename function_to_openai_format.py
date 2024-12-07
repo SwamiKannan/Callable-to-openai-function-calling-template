@@ -257,7 +257,7 @@ def update_pydantic_model_schema(pydantic_model:BaseModel, fn:Callable, name:str
 		print('Initial final model type:\t', type(final_model))
 		print('Initial final model doc:\t', dict[final_model])
 		print('Descriptors to go into the model:\t', descriptors)
-	final_model.__doc__ = ' '.join(descriptors).strip()	
+	final_model.__doc__ = ''.join(descriptors).strip()	
 	if debug:
 		print('Func desc as per validated model\t:', final_model.__doc__)
 		print('Does the final model have the attribute model_json_schema:\t',hasattr(final_model, "model_json_schema"))
