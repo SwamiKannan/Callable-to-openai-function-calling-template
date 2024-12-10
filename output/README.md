@@ -129,3 +129,11 @@ def get_name():
 	print('Function is being called')
 	return 'no arguments'
 ```
+#### Parsing and processing the function
+##### 1. Parsing to the format of langchain's convert_to_openai_tool()
+```
+# Setting get_tool_format = True allows returns the json format similar to that is returned when langchain's convert_to_openai_tool() is called with one minor change. The argument descriptions are incorporated within the arguments dictionary.
+# Setting the get_langchain_format = True adds all descriptions in the function description instead as per the langchain format
+dict_test= get_json_schema(get_name,get_tool_format= True, get_langchain_format=True)
+print(dict_test)
+```
