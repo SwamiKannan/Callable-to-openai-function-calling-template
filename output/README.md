@@ -165,3 +165,14 @@ print(dict_test)
 ```
 {'name': 'get_name', 'description': 'This is the docstring of the function\t\tThe string should contain valid, executable and pure Python code in markdown syntax.\t\tCode should also import any required Python packages.', 'parameters': {'type': 'object', 'properties': {}}}
 ```
+#### Output (manually formatted for clarity)
+```
+{
+  "name": "get_name",
+  "description": "This is the docstring of the function\t\tThe string should contain valid, executable and pure Python code in markdown syntax.\t\tCode should also import any required Python packages.",
+  "parameters": {
+    "type": "object",
+    "properties": {}
+  }
+}
+```
