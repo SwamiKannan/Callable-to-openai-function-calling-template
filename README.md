@@ -121,8 +121,8 @@ This library is partially based on Langchain's convert_to_openai_function. Howev
 
 ## Usage
 ```
-from function_to_openai_format import convert_function
-tool_format = convert_function(function) # function is the name of your function. But it should not be a string. It should be a function object or a callable.
+from function_to_openai_format import get_json_schema
+tool_format = get_json_schema(function) # function is the name of your function. But it should not be a string. It should be a function object or a callable.
 ```
 
 ## Comparison between this function output and OpenAI format
@@ -169,7 +169,7 @@ tool_format = convert_function(function) # function is the name of your function
 ```
 {'name': 'search_information', 'description': 'Get information, facts and data on all general knowledge and current events across the world. \nIt could also answer questions that other functions may not be able to answer.', 'parameters': {'type': 'object', 'properties': {'query': {'description': 'The search query.', 'type': 'string'}}, 'required': ['query']}}
 ```
-#### Using convert_function()
+#### Using get_json_schema()
 ```
 {'name': 'search_information', 'description': 'Get information, facts and data on all general knowledge and current events across the world. \nIt could also answer questions that other functions may not be able to answer.', 'parameters': {'properties': {'query': {'description': 'The search query.', 'type': 'string'}}, 'required': ['query'], 'type': 'object'}}
 ```
@@ -193,7 +193,7 @@ def clasp(a:int,b:int) -> int:
 ```
 {'name': 'clasp', 'description': 'Get company profile and overview for a given stock symbol.', 'parameters': { 'type': 'object', 'properties': {'a': {'description': 'one integer', 'type': 'integer'}, 'b': {'description': 'another integer', 'type': 'integer'}}, 'required': ['a', 'b']}}
 ```
-#### Using convert_function()
+#### Using get_json_schema()
 ```
 {'name': 'clasp', 'description': 'Get company profile and overview for a given stock symbol.', 'parameters': { 'properties': {'a': {'description': 'one integer', 'type': 'integer'}, 'b': {'description': 'another integer', 'type': 'integer'}}, 'required': ['a', 'b'], 'type': 'object' }}
 ```
@@ -217,7 +217,7 @@ def introduction() -> str:
 ```
 {'name': 'introduction', 'description': 'Get company profile and overview for a given stock symbol.', 'parameters': {'type': 'object', 'properties': {}}}
 ```
-#### Using convert_function()
+#### Using get_json_schema()
 ```
 {'name': 'introduction', 'description': 'Get company profile and overview for a given stock symbol.', 'parameters': {'properties': {}, 'type': 'object'}}
 ```
