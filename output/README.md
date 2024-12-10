@@ -109,5 +109,23 @@ any required Python packages.', 'parameters': {'properties': {'name': {'default'
 }
 ```
 ## 2. Sample function with no arguments:
+#### Function to be processed
 ```
+def get_name():
+	"""
+	This is the docstring of the function
+
+	The string should contain valid, executable and pure Python code in markdown syntax.
+	Code should also import any required Python packages.
+
+	Args:
+
+	Returns:
+		str: A concatentation of the name and the option chosen
+
+	Note:
+		Use this function with caution, as executing arbitrary code can pose security risks.
+	"""
+	print('Function is being called')
+	return 'no arguments'
 ```
