@@ -55,7 +55,35 @@ def function_example(*args, **kwargs) -> <return type>
 
 openai_representation = convert_to_openai_tool(function_example)
 ```
-
+The representation of the tool in OpenAI is as follows:
+```
+{
+  "type": "function",
+  "function": {
+    "name": "get_name",
+    "description": "This is the docstring of the function\n\nThe string should contain valid, executable and pure Python code in markdown syntax.\nCode should also import any required Python packages.\n\nArgs:\n    name : The name of the person \n    options : The options that needs to be provided to the user\n\nReturns:\n    str: A concatentation of the name and the option chosen\n\nNote:\n    Use this function with caution, as executing arbitrary code can pose security risks.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "default": "Swaminathan",
+          "type": "string"
+        },
+        "options": {
+          "default": "1",
+          "enum": [
+            "1",
+            "2",
+            "3",
+            "4"
+          ],
+          "type": "string"
+        }
+      }
+    }
+  }
+}
+```
 For a normal function, the template changes slightly as below:
 ```
 {
