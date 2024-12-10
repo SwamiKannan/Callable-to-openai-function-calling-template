@@ -58,9 +58,33 @@ openai_representation = convert_to_openai_tool(function_example)
 
 For a normal function, the template changes slightly as below:
 ```
-
+{
+  "name": "get_name",
+  "description": "This is the docstring of the function The string should contain valid, executable and pure Python code in markdown syntax.\nCode should also import any required Python packages.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "description": "The name of the person",
+        "default": "Swaminathan",
+        "type": "string"
+      },
+      "options": {
+        "description": "The options that needs to be provided to the user",
+        "default": "1",
+        "enum": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
+        "type": "string"
+      }
+    }
+  }
+}
 ```
-However, if you are not using Langchain, installing it for just this functionality makes no sense. This library acts as a substitute
+However, if you are not using Langchain for the rest of your project, installing it for just this functionality makes no sense. This library acts as a substitute
 ## Details
 This library is partially based on Langchain's convert_to_openai_function. However:
 1. This library strips out a lot of the extraneous checks and balances that Langchain's function uses since it accomodates multiple types of inputs to this function. If you follow the template attached for your function definition, you should be fine.
