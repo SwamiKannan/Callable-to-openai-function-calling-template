@@ -142,3 +142,17 @@ print(dict_test)
 {'type': 'function', 'function': {'name': 'get_name', 'description': 'This is the docstring of the function\n\nThe string should contain valid, executable and pure Python code in markdown syntax.\nCode should also import any required Python packages.\n\nArgs:\n\nReturns:\n    str: A concatentation of the name and the option chosen\n\nNote:\n    Use this function with 
 caution, as executing arbitrary code can pose security risks.', 'parameters': {'type': 'object', 'properties': {}}}
 ```
+#### Output (manually formatted for clarity)
+```
+{
+  "type": "function",
+  "function": {
+    "name": "get_name",
+    "description": "\nThis is the docstring of the function\n\nThe string should contain valid, executable and pure Python code in markdown syntax.\nCode should also import any required Python packages.\n\nArgs:\n\nReturns:\n\tstr: A concatentation of the name and the option chosen\n\nNote:\n\tUse this function with caution, as executing arbitrary code can pose security risks.\n",
+    "parameters": {
+      "type": "object",
+      "properties": {}
+    }
+  }
+}
+```
