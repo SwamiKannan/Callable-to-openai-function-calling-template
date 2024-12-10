@@ -1,6 +1,6 @@
 # Sample exercise in executing script
 
-### Sample function with multiple arguments:
+## 1. Sample function with multiple arguments:
 #### Function to be processed
 ```
 # Sample function to process
@@ -107,4 +107,7 @@ any required Python packages.', 'parameters': {'properties': {'name': {'default'
     "type": "object"
   }
 }
+```
+## 2. Sample function with no arguments:
+```
 ```
