@@ -37,7 +37,7 @@ tools=[
 ## Langchain
 If you are using the Langchain framework, there is two in-built functions called **convert_to_openai_function** and **convert_to_openai_tool** formats . The difference is whether you decorate the function with the @tool decorator or not. Hence, if you are already using Langchain, you can directly import this functionality as follows:
 ```
-from langchain_core.utils.function_calling import convert_to_openai_function
+from langchain_core.utils.function_calling import convert_to_openai_function , convert_to_openai_tool
 ```
 This tool can convert both normal Python functions and tool objects. Tool objects are as:
 ```
