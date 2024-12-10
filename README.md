@@ -123,6 +123,8 @@ For a normal function, the template changes slightly as below:
 }
 ```
 However, if you are not using Langchain for the rest of your project, installing it for just this functionality makes no sense. This library acts as a substitute
+
+** Personally, the issue was that I love using [Nous Research's](https://nousresearch.com/) [Hermes-2-Theta-Llama-3-8B model](https://huggingface.co/NousResearch/Hermes-2-Theta-Llama-3-8B) . However, for its function calling capabilities, [it seems to be trained on]([https://github.com/NousResearch/Hermes-Function-Calling](https://github.com/NousResearch/Hermes-Function-Calling/blob/main/functions.py)) Langchain's [tool calling template](https://python.langchain.com/v0.1/docs/modules/tools/) which was leading to some erroneous calls if I wasn't using the exact template 
 ## Details
 This library is partially based on Langchain's convert_to_openai_function. However:
 1. This library strips out a lot of the extraneous checks and balances that Langchain's function uses since it accomodates multiple types of inputs to this function. If you follow the template attached for your function definition, you should be fine.
