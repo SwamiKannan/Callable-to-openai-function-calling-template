@@ -124,9 +124,10 @@ For a normal function, the template changes slightly as below:
 ```
 However, if you are not using Langchain for the rest of your project, installing it for just this functionality makes no sense. This library acts as a substitute
 
-** Personally, the issue was that I love using [Nous Research's](https://nousresearch.com/) [Hermes-2-Theta-Llama-3-8B model](https://huggingface.co/NousResearch/Hermes-2-Theta-Llama-3-8B) . However, for its function calling capabilities, [it seems to be trained on]([https://github.com/NousResearch/Hermes-Function-Calling](https://github.com/NousResearch/Hermes-Function-Calling/blob/main/functions.py)) Langchain's [tool calling template](https://python.langchain.com/v0.1/docs/modules/tools/) which was leading to some erroneous calls if I wasn't using the exact template 
+**Personally, the issue was that I love using [Nous Research's](https://nousresearch.com/) [Hermes-2-Theta-Llama-3-8B model](https://huggingface.co/NousResearch/Hermes-2-Theta-Llama-3-8B) . However, for its function calling capabilities, [it seems to be trained on]([https://github.com/NousResearch/Hermes-Function-Calling](https://github.com/NousResearch/Hermes-Function-Calling/blob/main/functions.py)) Langchain's [tool calling template](https://python.langchain.com/v0.1/docs/modules/tools/) which was leading to some erroneous calls if I wasn't using the exact template** . Hence, I had to install the langchain-core library just to get this to work.
+
 ## Details
-This library is partially based on Langchain's convert_to_openai_function. However:
+This library is partially based on Langchain's convert_to_openai_function and convert_to_openai_tool. However:
 1. This library strips out a lot of the extraneous checks and balances that Langchain's function uses since it accomodates multiple types of inputs to this function. If you follow the template attached for your function definition, you should be fine.
 2. Completely based on Pydantic v2.
 3. I had quite a few issues with multiple changes to their codebase when I tried using their function such as multiple arguments to a function were not recognized, different types of objects were outputted depending on whether you were inputting a tool or a function. Hence, downstream accessibility to the output dictionary had to be parsed differently depending on whether you were using the function directly or as a tool.
