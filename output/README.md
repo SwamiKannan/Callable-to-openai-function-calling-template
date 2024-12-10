@@ -1,4 +1,4 @@
-# Sample exercise in executing script
+# Sample exercise
 
 ## 1. Sample function with multiple arguments:
 #### Function to be processed
