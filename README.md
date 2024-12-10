@@ -35,7 +35,7 @@ tools=[
  However, OpenAI weirdly, does not provide tools to directly convert a function definition into this template. Hence, everyone has to manually construct this template from their function, making that a time consuming process. This library seeks to automate this translation.
  
 ## Langchain
-If you are using the Langchain framework, there is an in-built function called **convert_to_openai_function** . Hence, if you are already using Langchain, you can directly import this functionality as follows:
+If you are using the Langchain framework, there is two in-built functions called **convert_to_openai_function** and **convert_to_openai_tool** formats . The difference is whether you decorate the function with the @tool decorator or not. Hence, if you are already using Langchain, you can directly import this functionality as follows:
 ```
 from langchain_core.utils.function_calling import convert_to_openai_function
 ```
@@ -53,7 +53,12 @@ def function_example(*args, **kwargs) -> <return type>
     Returns:
       <return type>
 
-openai_representation = convert_to_openai_function(function_example)
+openai_representation = convert_to_openai_tool(function_example)
+```
+
+For a normal function, the template changes slightly as below:
+```
+
 ```
 However, if you are not using Langchain, installing it for just this functionality makes no sense. This library acts as a substitute
 ## Details
