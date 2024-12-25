@@ -59,7 +59,6 @@ def dereference_refs_helper(obj, full_schema, skip_keys, processed_refs=None, de
 		full_schema = obj if not full_schema else full_schema
 		if processed_refs is None:
 			processed_refs = set()
-
 		if isinstance(obj, dict):
 			obj_out = {}
 			for k, v in obj.items():
