@@ -123,7 +123,7 @@ def remove_refs(json_schema, full_schema = None, processed_refs=None, debug=Fals
 		}
 		where a Bar object is an instancevariable of class Foo
 		'''
-		full_schema = full_schema if full_schema else json_schema
+        full_schema = full_schema if full_schema else json_schema
 		if processed_refs is None:
 			processed_refs = set()
 		keys = []
