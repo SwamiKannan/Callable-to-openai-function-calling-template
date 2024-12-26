@@ -306,9 +306,14 @@ def get_json_schema(pri:Callable, debug = False, get_tool_format= True, get_lang
 				"parameters":removed_title if interim_schema else updated_schema}
 		print('\n\nFinal dict with arguments\n', final_dict)
 	else:
+		print('len args <= 0')
+		dict_text = get_docstring(pri)
+		print(dict_text.items())
+		(name, doctext) = list(dict_text.items())[0]
+		print('Doctext:\n', doctext)
 		final_dict = {
-			"name":pri.__name__,
-			"description":list(get_docstring(pri).values())[0],
+			"name":name,
+			"description":doctext,
 			"parameters":
 			{
 				"type":"object",
