@@ -322,6 +322,10 @@ def get_json_schema(pri:Callable, debug = False, get_tool_format= True, get_lang
 		}
 	if not get_tool_format:
 		return final_dict
+	else:
+		final_dict = convert_json_to_tool_format(final_dict)
+		if not get_langchain_format:
+			return final_dict
 
 def find_tools(functions_path = 'src//functions.py'):
 	methods = []
