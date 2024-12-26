@@ -278,7 +278,7 @@ def update_pydantic_model_schema(pydantic_model:BaseModel, fn:Callable, name:str
 		print('Final schema:\t', schema)
 	return schema, final_model
 
-def get_json_schema(pri:Callable, debug = False):
+def get_json_schema(pri:Callable, debug = False, get_tool_format= True, get_langchain_format=True):
 	args = inspect.getfullargspec(pri).args
 	if debug:
 		print('Inspect function:\t', inspect.getfullargspec(pri).args)
