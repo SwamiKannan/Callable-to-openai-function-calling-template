@@ -320,7 +320,8 @@ def get_json_schema(pri:Callable, debug = False, get_tool_format= True, get_lang
 				"properties":{}
 			}
 		}
-	return final_dict
+	if not get_tool_format:
+		return final_dict
 
 def find_tools(functions_path = 'src//functions.py'):
 	methods = []
