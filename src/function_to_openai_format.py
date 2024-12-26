@@ -283,6 +283,7 @@ def get_json_schema(pri:Callable, debug = False, get_tool_format= True, get_lang
 	if debug:
 		print('Inspect function:\t', inspect.getfullargspec(pri).args)
 	if len(args)>0:
+		print('len args > 0')
 		validated_model = validate_call_model(pri, debug)
 		anno = inspect.get_annotations(pri)
 		if debug:
