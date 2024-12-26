@@ -337,6 +337,16 @@ def get_docstring(f:Callable) ->list: #Extracts the docstring of a given openai 
 	final_docstring = doctext[start_ind:end_ind].strip().replace('\n','')
 	print('\n\n\nFinal docstring:\n', final_docstring,'\n\n\n')
 	return {name:final_docstring}
+    
+def convert_json_to_tool_format(func_dict:dict):
+	dict_json = {}
+	dict_json['type'] = 'function'
+	dict_main = {'name':func_dict['name'],'description':func_dict['description'], 'parameters':{}}
+	properties = func_dict['parameters']['properties']
+	params = {'type':'object', 'properties':properties}
+	dict_main['parameters'] = params
+	dict_json['function'] = dict_main
+	return dict_json
 
 def find_tools(functions_path = 'src//functions.py'):
 	methods = []
