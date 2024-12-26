@@ -8,16 +8,6 @@ from pydantic import create_model, BaseModel, Field
 from pydantic.alias_generators import to_pascal
 import ast
 
-def get_docstring(f:Callable) ->list: #Extracts the docstring of a given openai formatted function item
-	name = f.__name__
-	doctext = f.__doc__
-	print('Doctext:\t',doctext)
-	# ind1 = doctext.find('->')+len('->')
-	# start_ind = ind1+doctext[ind1:].find(' - ')+len(' - ')
-	end_ind = doctext.find('Args')
-	final_docstring = doctext[:end_ind].strip().replace('\n','').strip()
-	return {name:final_docstring}
-
 def validate_call_model(f: Callable[..., Any], debug:bool=False) -> Type[BaseModel]:
 		signature = inspect.signature(f)
 		parameters = signature.parameters
