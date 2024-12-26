@@ -297,11 +297,14 @@ def get_json_schema(pri:Callable, debug = False, get_tool_format= True, get_lang
 		if debug:
 			print('***** Removing any $refs from the json schema (Refer function defintion for details)')
 		updated_schema, title, description = remove_extraneous_keys(interim_schema)
+		print('After removing extaneous keys:\t', description)
 		removed_title = remove_titles(updated_schema)
 		removed_title.pop('description',None)
+		print('Interim model.doc', interim_model.__doc__)
 		final_dict = {"name": name or title,
 				"description": interim_model.__doc__ or description,
 				"parameters":removed_title if interim_schema else updated_schema}
+		print('\n\nFinal dict with arguments\n', final_dict)
 	else:
 		final_dict = {
 			"name":pri.__name__,
