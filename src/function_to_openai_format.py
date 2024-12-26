@@ -348,15 +348,6 @@ def convert_json_to_tool_format(func_dict:dict):
 	dict_json['function'] = dict_main
 	return dict_json
 
-def find_tools(functions_path = 'src//functions.py'):
-	methods = []
-	f = open(functions_path, 'r')
-	text = f.read()
-	p = ast.parse(text)
-	for node in ast.walk(p):
-		if isinstance(node, ast.FunctionDef):
-			methods.append(node.name)
-	return methods	
 #testing
 if __name__=="__main__":
 	pass
