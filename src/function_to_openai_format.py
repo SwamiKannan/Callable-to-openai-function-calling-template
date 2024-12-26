@@ -328,7 +328,7 @@ def get_json_schema(pri:Callable, debug = False, get_tool_format= True, get_lang
 			final_dict['function']['parameters']['properties'] = properties
 			return final_dict
             
-def get_docstring(f:str) ->list: #Extracts the docstring of a given openai formatted function item
+def get_docstring(f:Callable) ->list: #Extracts the docstring of a given openai formatted function object
 	name = f.__name__
 	doctext = f.__doc__
 	ind1 = doctext.find('->')+len('->')
