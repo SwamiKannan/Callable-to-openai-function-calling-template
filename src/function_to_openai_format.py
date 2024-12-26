@@ -291,7 +291,9 @@ def get_json_schema(pri:Callable, debug = False, get_tool_format= True, get_lang
 			print('Annotation type:\t', type(anno))
 			print('\n')
 		name, descriptors, argument_descriptions = get_arguments_and_descriptions(pri, debug=debug)
-		interim_schema , interim_model = update_pydantic_model_schema(validated_model, pri, name, descriptors, argument_descriptions)
+		print('Descriptors before updating pydantic_model_scheme:\n', descriptors)
+		interim_schema , interim_model = update_pydantic_model_schema(validated_model, pri, name, descriptors, argument_descriptions, debug)
+		print('Before removing extraneous keys:\t',descriptors)
 
 		if debug:
 			print('***** Removing any $refs from the json schema (Refer function defintion for details)')
