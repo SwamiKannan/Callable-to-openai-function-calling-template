@@ -326,6 +326,17 @@ def get_json_schema(pri:Callable, debug = False, get_tool_format= True, get_lang
 		final_dict = convert_json_to_tool_format(final_dict)
 		if not get_langchain_format:
 			return final_dict
+		else:
+			docx = pri.__doc__
+			while '\t\t' in docx:
+				docx = docx.replace('\t\t','')
+			docx = docx.replace('\n\n\t','\n\n')
+			final_dict['function']['description'] = docx
+			properties = final_dict['function']['parameters']['properties']
+			for k in properties.keys():
+				properties[k].pop('description',None)
+			final_dict['function']['parameters']['properties'] = properties
+			return final_dict
 
 def find_tools(functions_path = 'src//functions.py'):
 	methods = []
