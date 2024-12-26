@@ -264,4 +264,4 @@ def introduction() -> str:
 
 ## Note:
 1. For this function to work, please ensure that the docstring of your function exactly as per the templates defined [here](/template/README.md) (including the number of empty lines and spaces). This repo parses the docstring based on the assumption that the docstring is aligned to the template outlined
-2. If you are using Nous Research fine-tuned models, set ```get_tool_format = True``` when you call get_json_schema() i.e.  get_json_schema(func_object, get_tool_format = True). That is how they have fine-tuned it.
+2. If you are using Nous Research fine-tuned models, set ```get_tool_format = True``` when you call get_json_schema() i.e.  ```get_json_schema(func_object, get_tool_format = True)``` . That is how they have fine-tuned it.
