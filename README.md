@@ -161,7 +161,7 @@ This library is partially based on Langchain's convert_to_openai_function and co
 
 
 ### 3. Call the get_json_schema() on your function
-    tool_format = get_json_schema(get_name) 
+    tool_format = get_json_schema(get_name, debug = False, get_tool_format= True, get_langchain_format=False) 
     # function is the name of your function. But it should not be a string. It should be a function object or a callable.
 
 
@@ -263,4 +263,5 @@ def introduction() -> str:
 ```
 
 ## Note:
-For this function to work, please ensure that the docstring of your function exactly as per the templates defined [here](/template/README.md) (including the number of empty lines and spaces). This repo parses the docstring based on the assumption that the docstring is aligned to the template outlined
+1. For this function to work, please ensure that the docstring of your function exactly as per the templates defined [here](/template/README.md) (including the number of empty lines and spaces). This repo parses the docstring based on the assumption that the docstring is aligned to the template outlined
+2. If you are using Nous Research fine-tuned models, set 
