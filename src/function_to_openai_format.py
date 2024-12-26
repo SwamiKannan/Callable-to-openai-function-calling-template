@@ -327,6 +327,16 @@ def get_json_schema(pri:Callable, debug = False, get_tool_format= True, get_lang
 				properties[k].pop('description',None)
 			final_dict['function']['parameters']['properties'] = properties
 			return final_dict
+            
+def get_docstring(f:str) ->list: #Extracts the docstring of a given openai formatted function item
+	name = f.__name__
+	doctext = f.__doc__
+	ind1 = doctext.find('->')+len('->')
+	start_ind = ind1+doctext[ind1:].find(' - ')+len(' - ')
+	end_ind = doctext.find('Args')
+	final_docstring = doctext[start_ind:end_ind].strip().replace('\n','')
+	print('\n\n\nFinal docstring:\n', final_docstring,'\n\n\n')
+	return {name:final_docstring}
 
 def find_tools(functions_path = 'src//functions.py'):
 	methods = []
