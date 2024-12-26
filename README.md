@@ -138,26 +138,27 @@ This library is partially based on Langchain's convert_to_openai_function and co
     from function_to_openai_format import get_json_schema
     ```
 ### 2. Define your function as per the [template provided](/template/README.md)
-def get_name(name:str = 'Swaminathan', options:Literal['1','2','3','4'] = '1'):
-  """
-  This is the docstring of the function
+    ```
+    def get_name(name:str = 'Swaminathan', options:Literal['1','2','3','4'] = '1'):
+      """
+      This is the docstring of the function
  
-  The string should contain valid, executable and pure Python code in markdown syntax.
-  Code should also import any required Python packages.
+      The string should contain valid, executable and pure Python code in markdown syntax.
+      Code should also import any required Python packages.
  
-  Args:
-   name : The name of the person 
-   options : The options that needs to be provided to the user
+      Args:
+       name : The name of the person 
+       options : The options that needs to be provided to the user
  
-  Returns:
-   str: A concatentation of the name and the option chosen
+      Returns:
+       str: A concatentation of the name and the option chosen
  
-  Note:
-   Use this function with caution, as executing arbitrary code can pose security risks.
-  """
-  print('Function is being called')
-  return (name+'_'+str(options))
-
+      Note:
+       Use this function with caution, as executing arbitrary code can pose security risks.
+      """
+      print('Function is being called')
+      return (name+'_'+str(options))
+    ```
 tool_format = get_json_schema(function) # function is the name of your function. But it should not be a string. It should be a function object or a callable.
 ```
 
