@@ -346,6 +346,13 @@ def convert_json_to_tool_format(func_dict:dict):
 	properties = func_dict['parameters']['properties']
 	reqd_flag = func_dict['parameters']['required'] if 'required' in func_dict['parameters'] else None
 	params = {'type':'object', 'properties':properties}
+    if reqd_flag:
+            params.update({'required':reqd_flag})
+        dict_main['parameters'] = params
+        dict_json['function'] = dict_main
+        print('func dict keys:\t',func_dict.keys())
+        dict_json = json.loads(str(dict_test).replace("\'",'"'))
+
 	return dict_json
 
 #testing
