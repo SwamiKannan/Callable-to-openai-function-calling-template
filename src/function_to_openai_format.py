@@ -341,11 +341,11 @@ def get_docstring(f:Callable) ->list: #Extracts the docstring of a given openai 
 def convert_json_to_tool_format(func_dict:dict):
 	dict_json = {}
 	dict_json['type'] = 'function'
+	# dict_main is a sub dict which has the name, description and initiating parameters
 	dict_main = {'name':func_dict['name'],'description':func_dict['description'], 'parameters':{}}
 	properties = func_dict['parameters']['properties']
+	reqd_flag = func_dict['parameters']['required'] if 'required' in func_dict['parameters'] else None
 	params = {'type':'object', 'properties':properties}
-	dict_main['parameters'] = params
-	dict_json['function'] = dict_main
 	return dict_json
 
 #testing
